@@ -46,7 +46,7 @@ Resources:
     DependsOn: LogGroup
     Properties:
       FunctionName: !Sub ${AppName}-${Stage}
-      Handler: com.gu.payment_failure_comms.Handler::handleRequest
+      Handler: payment_failure_comms.Handler::handleRequest
       Runtime: java8.al2
       CodeUri:
         Bucket: support-service-lambdas-dist
