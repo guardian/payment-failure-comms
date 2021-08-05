@@ -1,7 +1,7 @@
 package payment_failure_comms.models
 
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.ZonedDateTime
 
 case class BrazeTrackRequest(events: List[CustomEvent])
 

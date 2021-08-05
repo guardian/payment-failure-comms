@@ -1,16 +1,16 @@
 package payment_failure_comms
 
+import io.circe.generic.auto._
+import io.circe.syntax._
 import okhttp3.{MediaType, OkHttpClient, Request, RequestBody, Response}
 import payment_failure_comms.models.{BrazeConfig, BrazeTrackRequest, BrazeRequestFailure, BrazeResponseFailure, Failure}
 import scala.util.Try
-import io.circe.generic.auto._
-import io.circe.syntax._
 
 object BrazeConnector {
 
-  val client = new OkHttpClient()
   val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
-
+  val http = new OkHttpClient()
+  
   def sendCustomEvent(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
     handleRequestResult(
       sendRequest(
@@ -29,7 +29,7 @@ object BrazeConnector {
       .build()
 
     Try(
-      client.newCall(request).execute()
+      http.newCall(request).execute()
     ).toEither
   }
 
