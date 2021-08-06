@@ -8,9 +8,9 @@ import scala.util.Try
 
 object BrazeConnector {
 
-  val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
-  val http = new OkHttpClient()
-  
+  private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
+  private val http = new OkHttpClient()
+
   def sendCustomEvent(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
     handleRequestResult(
       sendRequest(
