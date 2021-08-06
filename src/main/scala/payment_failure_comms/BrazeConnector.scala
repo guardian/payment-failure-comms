@@ -13,7 +13,7 @@ object BrazeConnector {
 
   def sendCustomEvent(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
     handleRequestResult(
-      sendRequest(
+      postRequest(
         url = s"https://${brazeConfig.instanceUrl}/users/track",
         bearerToken = brazeConfig.bearerToken,
         RequestBody.create(payload.asJson.toString, JSON)
@@ -21,7 +21,7 @@ object BrazeConnector {
     )
   }
 
-  def sendRequest(url: String, bearerToken: String, body: RequestBody): Either[Throwable, Response] = {
+  def postRequest(url: String, bearerToken: String, body: RequestBody): Either[Throwable, Response] = {
     val request: Request = new Request.Builder()
       .header("Authorization", s"Bearer ${bearerToken}")
       .url(url)
