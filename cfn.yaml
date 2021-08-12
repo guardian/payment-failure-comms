@@ -20,16 +20,25 @@ Mappings:
   StageMap:
     PROD:
       Schedule: 'rate(30 minutes)'
+      IdapiInstanceUrl: idapi.theguardian.com
+      IdapiStage: PROD
+      IdapiSecretsVersion: 190ff297-e512-4c87-a88b-015f863f8285
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
       BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
     CODE:
       Schedule: 'rate(365 days)'
+      IdapiInstanceUrl: idapi.code.dev-theguardian.com
+      IdapiStage: CODE
+      IdapiSecretsVersion: 4349b3d1-5dc4-4a44-bded-263fff6dbdaa
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
       BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
     DEV:
       Schedule: 'rate(365 days)'
+      IdapiInstanceUrl: idapi.code.dev-theguardian.com
+      IdapiStage: CODE
+      IdapiSecretsVersion: 4349b3d1-5dc4-4a44-bded-263fff6dbdaa
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
       BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
@@ -55,6 +64,11 @@ Resources:
       MemorySize: 256
       Environment:
         Variables:
+          idapiInstanceUrl: !FindInMap [ StageMap, !Ref Stage, IdapiInstanceUrl ]
+          idapiBearerToken: !Sub
+            - '{{resolve:secretsmanager:IDAPI/${IDAPIStage}/${AppName}:SecretString:bearerToken::${IDAPISecretsVersion}}}'
+            - IdapiStage: !FindInMap [ StageMap, !Ref Stage, IdapiStage ]
+              IdapiSecretsVersion: !FindInMap [ StageMap, !Ref Stage, IdapiSecretsVersion ]
           brazeInstanceUrl: !FindInMap [ StageMap, !Ref Stage, BrazeInstanceUrl ]
           brazeBearerToken:
             !Sub
