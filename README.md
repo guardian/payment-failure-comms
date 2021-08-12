@@ -1,5 +1,5 @@
 # payment-failure-comms
-This repo contains a a lambda that emits payment failure related Custom Events to Braze. It fetches data from Salesforce to determine users entering or exiting payment failure and places that information into Braze using Custom Events.
+This repo contains a lambda that emits payment failure related Custom Events to Braze. It fetches data from Salesforce to determine users entering or exiting payment failure and places that information into Braze using Custom Events.
 
 Its aim is to decouple payment failure comms from payment retries by providing Braze with the information needed to trigger these comms.
 
