@@ -20,7 +20,7 @@ object IdapiConnector {
   def getBrazeId(idapiConfig: IdapiConfig, IdentityId: String): Either[Failure, String] = {
     handleRequestResponse[IdapiGetUserResponse](
       getRequest(
-        url = s"https://${idapiConfig.instanceUrl}/users/track",
+        url = s"https://${idapiConfig.instanceUrl}/user/${IdentityId}",
         bearerToken = idapiConfig.bearerToken
       )
     ).map(response => response.user.privateFields.brazeUuid)
