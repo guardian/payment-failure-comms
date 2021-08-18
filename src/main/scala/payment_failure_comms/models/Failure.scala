@@ -9,6 +9,14 @@ case class ConfigFailure(details: String) extends Failure {
   val kind: String = "Config"
 }
 
+case class SalesforceRequestFailure(details: String) extends Failure {
+  val kind: String = "Salesforce Request"
+}
+
+case class SalesforceResponseFailure(details: String) extends Failure {
+  val kind: String = "Salesforce Response"
+}
+
 case class IdapiRequestFailure(details: String) extends Failure {
   val kind: String = "IDAPI Request"
 }
