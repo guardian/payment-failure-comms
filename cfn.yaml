@@ -118,7 +118,7 @@ Resources:
               SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
           idapiInstanceUrl: !FindInMap [ StageMap, !Ref Stage, IdapiInstanceUrl ]
           idapiBearerToken: !Sub
-            - '{{resolve:secretsmanager:IDAPI/${IDAPIStage}/${AppName}:SecretString:bearerToken::${IDAPISecretsVersion}}}'
+            - '{{resolve:secretsmanager:IDAPI/${IdapiStage}/${AppName}:SecretString:bearerToken::${IdapiSecretsVersion}}}'
             - IdapiStage: !FindInMap [ StageMap, !Ref Stage, IdapiStage ]
               IdapiSecretsVersion: !FindInMap [ StageMap, !Ref Stage, IdapiSecretsVersion ]
           brazeInstanceUrl: !FindInMap [ StageMap, !Ref Stage, BrazeInstanceUrl ]
