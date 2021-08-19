@@ -2,7 +2,7 @@ package payment_failure_comms.testData
 
 import okhttp3.{MediaType, Protocol, Request, Response, ResponseBody}
 
-object IdapiConnectorTestData {
+object ConnectorTestData {
 
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
   private val request = new Request.Builder().url("http://url").build()
@@ -13,6 +13,7 @@ object IdapiConnectorTestData {
   private val invalidBody = "{}"
 
   private val validResponseBody = ResponseBody.create(validBody, JSON)
+  private val emptyResponseBody = ResponseBody.create("", JSON)
   private val invalidResponseBody = ResponseBody.create(invalidBody, JSON)
 
   case class ResponseModel(field: Int)
@@ -36,6 +37,7 @@ object IdapiConnectorTestData {
       .protocol(Protocol.HTTP_1_1)
       .code(500)
       .message("NOT OK")
+      .body(emptyResponseBody)
       .build()
   )
 
