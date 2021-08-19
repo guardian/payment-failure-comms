@@ -136,25 +136,18 @@ object SalesforceConnector {
   def handleRequestResult[T: Decoder](result: Either[Throwable, Response]): Either[Failure, T] = {
     result
       .left.map(i => SalesforceRequestFailure(s"Attempt to contact Salesforce failed with error: ${i.toString}"))
-      .flatMap { response =>
+      .flatMap(response => {
         val body = response.body().string()
 
         if (response.isSuccessful) {
-
           decode[T](body)
             .left.map(decodeError =>
-              SalesforceResponseFailure(
-                s"Failed to decode successful response:$decodeError. Body to decode ${body}"
-              )
+              SalesforceResponseFailure(s"Failed to decode successful response:$decodeError. Body to decode ${body}")
             )
         } else {
-          Left(
-            SalesforceResponseFailure(
-              s"The request to Salesforce was unsuccessful: ${response.code} - ${body}"
-            )
-          )
+          Left(SalesforceResponseFailure(s"The request to Salesforce was unsuccessful: ${response.code} - ${body}"))
         }
-      }
+      })
   }
 
 }
