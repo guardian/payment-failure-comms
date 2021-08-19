@@ -17,7 +17,7 @@ object ConnectorTestData {
   private def invalidResponseBody = ResponseBody.create(invalidBody, JSON)
 
   case class ResponseModel(field: Int)
-  val validBodyAsClass = ResponseModel(32)
+  val validBodyAsClass = ResponseModel(magicNumber)
 
   def successfulResponse: Either[Throwable, Response] = Right(
     new Response.Builder()
