@@ -12,14 +12,14 @@ object ConnectorTestData {
   private val validBody = s"""{"field": $magicNumber}"""
   private val invalidBody = "{}"
 
-  private val validResponseBody = ResponseBody.create(validBody, JSON)
-  private val emptyResponseBody = ResponseBody.create("", JSON)
-  private val invalidResponseBody = ResponseBody.create(invalidBody, JSON)
+  private def validResponseBody = ResponseBody.create(validBody, JSON)
+  private def emptyResponseBody = ResponseBody.create("", JSON)
+  private def invalidResponseBody = ResponseBody.create(invalidBody, JSON)
 
   case class ResponseModel(field: Int)
   val validBodyAsClass = ResponseModel(32)
 
-  val successfulResponse: Either[Throwable, Response] = Right(
+  def successfulResponse: Either[Throwable, Response] = Right(
     new Response.Builder()
       .request(request)
       .protocol(Protocol.HTTP_1_1)
@@ -29,9 +29,9 @@ object ConnectorTestData {
       .build()
   )
 
-  val requestFailure: Either[Throwable, Response] = Left(new Throwable())
+  def requestFailure: Either[Throwable, Response] = Left(new Throwable())
 
-  val failureResponse: Either[Throwable, Response] = Right(
+  def failureResponse: Either[Throwable, Response] = Right(
     new Response.Builder()
       .request(request)
       .protocol(Protocol.HTTP_1_1)
@@ -41,7 +41,7 @@ object ConnectorTestData {
       .build()
   )
 
-  val unexpectedResponse: Either[Throwable, Response] = Right(
+  def unexpectedResponse: Either[Throwable, Response] = Right(
     new Response.Builder()
       .request(request)
       .protocol(Protocol.HTTP_1_1)
