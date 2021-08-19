@@ -16,7 +16,6 @@ import payment_failure_comms.models.{
   SalesforceRequestFailure,
   SalesforceResponseFailure
 }
-
 import scala.util.Try
 
 case class PaymentFailureRecordUpdate()

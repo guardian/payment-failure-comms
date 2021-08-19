@@ -1,7 +1,6 @@
 package payment_failure_comms
 
 import io.circe.generic.auto._
-import okhttp3.{MediaType, Request, Response, ResponseBody}
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
