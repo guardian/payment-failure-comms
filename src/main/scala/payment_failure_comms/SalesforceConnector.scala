@@ -50,6 +50,7 @@ object SalesforceConnector {
       authDetails: SalesforceAuth,
       apiVersion: String
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
+    // TODO: Replace with actual query
     val query = "TBD"
 
     handleRequestResult[SFPaymentFailureRecordWrapper](
