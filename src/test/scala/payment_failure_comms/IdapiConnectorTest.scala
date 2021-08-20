@@ -6,7 +6,7 @@ import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import payment_failure_comms.models.{IdapiRequestFailure, IdapiResponseFailure}
-import payment_failure_comms.testData.IdapiConnectorTestData.{
+import payment_failure_comms.testData.ConnectorTestData.{
   ResponseModel,
   failureResponse,
   requestFailure,
