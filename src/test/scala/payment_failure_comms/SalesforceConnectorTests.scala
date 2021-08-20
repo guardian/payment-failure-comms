@@ -14,7 +14,7 @@ import payment_failure_comms.testData.ConnectorTestData.{
   validBodyAsClass
 }
 
-class SalesforceConnectorTest extends AnyFlatSpec with should.Matchers with EitherValues {
+class SalesforceConnectorTests extends AnyFlatSpec with should.Matchers with EitherValues {
 
   // handleRequestResult success cases
   "handleRequestResult" should "return the correctly formed case class if the request was successul and the reply is 2xx" in {
