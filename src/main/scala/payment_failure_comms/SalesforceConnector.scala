@@ -104,7 +104,7 @@ object SalesforceConnector {
     ).toEither
   }
 
-  def queryRequest(url: String, bearerToken: String, query: String) = {
+  def queryRequest(url: String, bearerToken: String, query: String): Either[Throwable, Response] = {
     val urlWithParam = HttpUrl
       .parse(url)
       .newBuilder()
@@ -122,7 +122,7 @@ object SalesforceConnector {
     ).toEither
   }
 
-  def compositeRequest(url: String, bearerToken: String, body: RequestBody) = {
+  def compositeRequest(url: String, bearerToken: String, body: RequestBody): Either[Throwable, Response] = {
     val request: Request = new Request.Builder()
       .header("Authorization", s"Bearer ${bearerToken}")
       .url(url)
