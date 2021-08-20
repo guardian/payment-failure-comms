@@ -36,13 +36,15 @@ object BrazeConnector {
   def handleRequestResult(result: Either[Throwable, Response]): Either[Failure, Unit] = {
     result
       .left.map(i => BrazeRequestFailure(s"Attempt to contact Braze failed with error: ${i.toString}"))
-      .flatMap(response =>
+      .flatMap(response => {
+        val body = response.body().string()
+
         if (response.isSuccessful) {
           Right(())
         } else {
-          Left(BrazeResponseFailure(s"The request to Braze was unsuccessful: ${response.code} - ${response.body}"))
+          Left(BrazeResponseFailure(s"The request to Braze was unsuccessful: ${response.code} - ${body}"))
         }
-      )
+      })
   }
 
 }

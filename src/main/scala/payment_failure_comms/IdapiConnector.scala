@@ -18,7 +18,7 @@ object IdapiConnector {
   private val http = new OkHttpClient()
 
   def getBrazeId(idapiConfig: IdapiConfig, IdentityId: String): Either[Failure, String] = {
-    handleRequestResponse[IdapiGetUserResponse](
+    handleRequestResult[IdapiGetUserResponse](
       getRequest(
         url = s"https://${idapiConfig.instanceUrl}/user/${IdentityId}",
         bearerToken = idapiConfig.bearerToken
@@ -37,20 +37,20 @@ object IdapiConnector {
     ).toEither
   }
 
-  def handleRequestResponse[T: Decoder](result: Either[Throwable, Response]): Either[Failure, T] = {
+  def handleRequestResult[T: Decoder](result: Either[Throwable, Response]): Either[Failure, T] = {
     result
       .left.map(i => IdapiRequestFailure(s"Attempt to contact Braze failed with error: ${i.toString}"))
-      .flatMap(response =>
+      .flatMap(response => {
+        val body = response.body().string()
+
         if (response.isSuccessful) {
-          decode[T](response.body().string())
+          decode[T](body)
             .left.map(decodeError =>
-              IdapiResponseFailure(
-                s"Failed to decode successful response:$decodeError. Body to decode ${response.body().string()}"
-              )
+              IdapiResponseFailure(s"Failed to decode successful response:$decodeError. Body to decode ${body}")
             )
         } else {
-          Left(IdapiResponseFailure(s"The request to Braze was unsuccessful: ${response.code} - ${response.body}"))
+          Left(IdapiResponseFailure(s"The request to Braze was unsuccessful: ${response.code} - ${body}"))
         }
-      )
+      })
   }
 }
