@@ -8,8 +8,8 @@ object Handler {
     (for {
       config <- Config()
     } yield ()) match {
-      case Left(_)  => println("Success")
-      case Right(_) => println("I totally just ran.")
+      case Left(failure) => println(failure)
+      case Right(_)      => println("I totally just ran.")
     }
   }
 
