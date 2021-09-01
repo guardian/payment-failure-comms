@@ -49,8 +49,11 @@ object SalesforceConnector {
       authDetails: SalesforceAuth,
       apiVersion: String
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
-    // TODO: Replace with actual query
-    val query = "TBD"
+    val query = """
+        |SELECT Id, Status__c, Contact__r.IdentityID__c, PF_Comms_Number_of_Attempts__c
+        |FROM Payment_Failure__c
+        |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
+        |LIMIT 200""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](
       queryRequest(
