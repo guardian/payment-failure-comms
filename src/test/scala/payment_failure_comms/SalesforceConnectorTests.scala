@@ -39,8 +39,6 @@ class SalesforceConnectorTests extends AnyFlatSpec with should.Matchers with Eit
   "handleRequestResult" should "return a SalesforceResponseFailure if the request was successful and the reply is 2xx but the body failed decoding" in {
     val result = SalesforceConnector.handleRequestResult[ResponseModel](unexpectedResponse)
 
-    println(result)
-
     result.isLeft shouldBe true
     result.left.value shouldBe a[SalesforceResponseFailure]
   }
