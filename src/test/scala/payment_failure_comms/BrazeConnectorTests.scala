@@ -21,7 +21,7 @@ class BrazeConnectorTests extends AnyFlatSpec with should.Matchers with EitherVa
     result.left.value shouldBe a[BrazeRequestFailure]
   }
 
-  "handleRequestResult" should "return a BrazeResponseFailure if the request was successful but an error code was received " in {
+  "handleRequestResult" should "return a BrazeResponseFailure if the request was successful but an error code was received" in {
     val result = BrazeConnector.handleRequestResult(failureResponse)
 
     result.isLeft shouldBe true
