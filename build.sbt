@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
     riffRaffArtifactResources += (file("cfn.yaml"), "cfn/cfn.yaml"),
     libraryDependencies ++=
       Seq(
-        "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+        "org.scalatest" %% "scalatest" % "3.2.10" % Test,
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.9.1"
