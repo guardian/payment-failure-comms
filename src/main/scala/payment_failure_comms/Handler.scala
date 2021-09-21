@@ -7,6 +7,8 @@ object Handler {
   def handleRequest(): Unit = {
     (for {
       config <- Config()
+      sfConnector <- SalesforceConnector(config.salesforce)
+      records <- sfConnector.getRecordsToProcess()
     } yield ()) match {
       case Left(failure) => println(failure)
       case Right(_)      => println("I totally just ran.")
