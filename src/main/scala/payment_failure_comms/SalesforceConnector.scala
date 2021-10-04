@@ -8,6 +8,7 @@ import okhttp3.{HttpUrl, MediaType, OkHttpClient, Request, RequestBody, Response
 import payment_failure_comms.models.{
   Failure,
   PaymentFailureRecord,
+  PaymentFailureRecordUpdateRequest,
   SFCompositeResponse,
   SFPaymentFailureRecordWrapper,
   SFResponse,
@@ -16,16 +17,15 @@ import payment_failure_comms.models.{
   SalesforceRequestFailure,
   SalesforceResponseFailure
 }
-import scala.util.Try
 
-case class PaymentFailureRecordUpdate()
+import scala.util.Try
 
 class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String) {
   def getRecordsToProcess(): Either[Failure, Seq[PaymentFailureRecord]] =
     SalesforceConnector.getRecordsToProcess(authDetails, apiVersion)
 
-  def updateRecords(records: Seq[PaymentFailureRecordUpdate]): Either[Failure, SFCompositeResponse] =
-    SalesforceConnector.updateRecords(authDetails, apiVersion, records)
+  def updateRecords(request: PaymentFailureRecordUpdateRequest): Either[Failure, SFCompositeResponse] =
+    SalesforceConnector.updateRecords(authDetails, apiVersion, request)
 }
 
 object SalesforceConnector {
@@ -49,11 +49,16 @@ object SalesforceConnector {
       authDetails: SalesforceAuth,
       apiVersion: String
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
-    val query = """
-        |SELECT Id, Status__c, Contact__r.IdentityID__c, PF_Comms_Number_of_Attempts__c
-        |FROM Payment_Failure__c
-        |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
-        |LIMIT 200""".stripMargin
+    val query =
+      """
+      |SELECT Id,
+      |   Status__c,
+      |   Contact__r.IdentityID__c,
+      |   PF_Comms_Last_Stage_Processed__c, 
+      |   PF_Comms_Number_of_Attempts__c
+      |FROM Payment_Failure__c
+      |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
+      |LIMIT 200""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](
       queryRequest(
@@ -68,9 +73,9 @@ object SalesforceConnector {
   def updateRecords(
       authDetails: SalesforceAuth,
       apiVersion: String,
-      records: Seq[PaymentFailureRecordUpdate]
+      request: PaymentFailureRecordUpdateRequest
   ): Either[Failure, SFCompositeResponse] = {
-    val body = RequestBody.create(records.asJson.toString, JSON)
+    val body = RequestBody.create(request.asJson.toString, JSON)
 
     handleRequestResult[Seq[SFResponse]](
       compositeRequest(
