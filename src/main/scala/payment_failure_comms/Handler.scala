@@ -6,6 +6,7 @@ import payment_failure_comms.models.{
   Failure,
   IdapiConfig,
   PaymentFailureRecord,
+  PaymentFailureRecordUpdateRequest,
   PaymentFailureRecordWithBrazeId
 }
 
@@ -21,6 +22,12 @@ object Handler {
 
       brazeRequest = BrazeTrackRequest(recordsWithBrazeId, config.braze.zuoraAppId)
       brazeResult = BrazeConnector.sendCustomEvent(config.braze, brazeRequest)
+
+      updateRecordsRequest = PaymentFailureRecordUpdateRequest(recordsWithBrazeId, brazeResult)
+      updateRecordsResult <- sfConnector.updateRecords(updateRecordsRequest)
+
+      // TODO: Process updateRecordsResult for eventual failures
+
     } yield ()) match {
       case Left(failure) => println(failure)
       case Right(_)      => println("I totally just ran.")
