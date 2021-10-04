@@ -1,6 +1,7 @@
 package payment_failure_comms
 
 import payment_failure_comms.models.{
+  BrazeTrackRequest,
   Config,
   Failure,
   IdapiConfig,
@@ -14,9 +15,12 @@ object Handler {
     (for {
       config <- Config()
       sfConnector <- SalesforceConnector(config.salesforce)
+
       records <- sfConnector.getRecordsToProcess()
       recordsWithBrazeId = augmentRecords(config.idapi, records)
 
+      brazeRequest = BrazeTrackRequest(recordsWithBrazeId, config.braze.zuoraAppId)
+      brazeResult = BrazeConnector.sendCustomEvent(config.braze, brazeRequest)
     } yield ()) match {
       case Left(failure) => println(failure)
       case Right(_)      => println("I totally just ran.")
