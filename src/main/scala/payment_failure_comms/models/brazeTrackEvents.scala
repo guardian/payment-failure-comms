@@ -28,8 +28,10 @@ object BrazeTrackRequest {
         val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
         // TODO: Determine eventTime from record. Entry and exit events will fetch date from different fields
         val eventTime = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ").format(ZonedDateTime.now)
-        // TODO: Determine eventProperties from record
-        val eventProperties = EventProperties("EUR", 0.00)
+        val eventProperties = EventProperties(
+          currency = record.record.Currency__c,
+          amount = record.record.Invoice_Total_Amount__c
+        )
 
         CustomEvent(
           external_id = record.brazeId.getOrElse(""), // The OrElse never happens because it's filtered out above

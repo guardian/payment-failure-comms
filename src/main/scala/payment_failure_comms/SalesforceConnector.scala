@@ -55,7 +55,9 @@ object SalesforceConnector {
       |   Status__c,
       |   Contact__r.IdentityID__c,
       |   PF_Comms_Last_Stage_Processed__c, 
-      |   PF_Comms_Number_of_Attempts__c
+      |   PF_Comms_Number_of_Attempts__c,
+      |   Currency__c,
+      |   Invoice_Total_Amount__c
       |FROM Payment_Failure__c
       |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
       |LIMIT 200""".stripMargin
