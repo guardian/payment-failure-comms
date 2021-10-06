@@ -12,6 +12,7 @@ case class EventProperties(currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
+  val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ")
   val eventNameMapping = Map(
     "In Progress" -> "payment_failure",
     "Recovered" -> "payment_recovery",
@@ -27,7 +28,7 @@ object BrazeTrackRequest {
         // TODO: Throw error if record.record.Status__c doesn't exist in eventNameMapping
         val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
         // TODO: Determine eventTime from record. Entry and exit events will fetch date from different fields
-        val eventTime = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ").format(ZonedDateTime.now)
+        val eventTime = dateTimeFormatter.format(ZonedDateTime.now)
         val eventProperties = EventProperties(
           currency = record.record.Currency__c,
           amount = record.record.Invoice_Total_Amount__c
