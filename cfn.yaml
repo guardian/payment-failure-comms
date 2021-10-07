@@ -23,40 +23,40 @@ Mappings:
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: b7b63e09-f39f-4e4f-80ef-9dd203c2d59b
+      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
       SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.theguardian.com
       IdapiStage: PROD
       IdapiSecretsVersion: 190ff297-e512-4c87-a88b-015f863f8285
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
+      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
     CODE:
       Schedule: 'rate(365 days)'
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: b7b63e09-f39f-4e4f-80ef-9dd203c2d59b
+      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
       SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
-      IdapiSecretsVersion: 4349b3d1-5dc4-4a44-bded-263fff6dbdaa
+      IdapiSecretsVersion: ab25e4c8-cd0a-45ab-991c-39d3fc11445d
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
+      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
     DEV:
       Schedule: 'rate(365 days)'
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: b7b63e09-f39f-4e4f-80ef-9dd203c2d59b
+      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
       SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
-      IdapiSecretsVersion: 4349b3d1-5dc4-4a44-bded-263fff6dbdaa
+      IdapiSecretsVersion: ab25e4c8-cd0a-45ab-991c-39d3fc11445d
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 454bfb7f-ea8f-4870-be4b-a7068d2e16f4
+      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
 
 Resources:
   LogGroup:
