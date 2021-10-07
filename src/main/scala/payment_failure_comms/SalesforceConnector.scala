@@ -49,6 +49,7 @@ object SalesforceConnector {
       authDetails: SalesforceAuth,
       apiVersion: String
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
+    // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
     val query =
       """
       |SELECT Id,
