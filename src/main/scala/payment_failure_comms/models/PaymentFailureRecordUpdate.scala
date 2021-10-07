@@ -34,17 +34,17 @@ object PaymentFailureRecordUpdate {
 
   def successfulUpdate(augmentedRecord: PaymentFailureRecordWithBrazeId) = {
     PaymentFailureRecordUpdate(
-      augmentedRecord.record.Id,
-      eventStageMapping.get(augmentedRecord.record.Status__c),
-      0
+      Id = augmentedRecord.record.Id,
+      PF_Comms_Last_Stage_Processed__c = eventStageMapping.get(augmentedRecord.record.Status__c),
+      PF_Comms_Number_of_Attempts__c = 0
     )
   }
 
   def failedUpdate(augmentedRecord: PaymentFailureRecordWithBrazeId) = {
     PaymentFailureRecordUpdate(
-      augmentedRecord.record.Id,
-      augmentedRecord.record.PF_Comms_Last_Stage_Processed__c,
-      augmentedRecord.record.PF_Comms_Number_of_Attempts__c.getOrElse(0) + 1
+      Id = augmentedRecord.record.Id,
+      PF_Comms_Last_Stage_Processed__c = augmentedRecord.record.PF_Comms_Last_Stage_Processed__c,
+      PF_Comms_Number_of_Attempts__c = augmentedRecord.record.PF_Comms_Number_of_Attempts__c.getOrElse(0) + 1
     )
   }
 }
