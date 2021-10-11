@@ -80,14 +80,17 @@ object SalesforceConnector {
   ): Either[Failure, SFCompositeResponse] = {
     val body = RequestBody.create(request.asJson.toString, JSON)
 
-    handleRequestResult[Seq[SFResponse]](
-      compositeRequest(
-        url = s"${authDetails.instance_url}/services/data/$apiVersion/composite/sobjects",
-        bearerToken = authDetails.access_token,
-        body
+    if (request.records.isEmpty)
+      Right(SFCompositeResponse(Seq()))
+    else
+      handleRequestResult[Seq[SFResponse]](
+        compositeRequest(
+          url = s"${authDetails.instance_url}/services/data/$apiVersion/composite/sobjects",
+          bearerToken = authDetails.access_token,
+          body
+        )
       )
-    )
-      .map(responses => SFCompositeResponse(responses))
+        .map(responses => SFCompositeResponse(responses))
 
   }
 

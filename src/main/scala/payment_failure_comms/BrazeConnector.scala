@@ -12,13 +12,16 @@ object BrazeConnector {
   private val http = new OkHttpClient()
 
   def sendCustomEvent(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
-    handleRequestResult(
-      postRequest(
-        url = s"https://${brazeConfig.instanceUrl}/users/track",
-        bearerToken = brazeConfig.bearerToken,
-        RequestBody.create(payload.asJson.toString, JSON)
+    if (payload.events.isEmpty)
+      Right(())
+    else
+      handleRequestResult(
+        postRequest(
+          url = s"https://${brazeConfig.instanceUrl}/users/track",
+          bearerToken = brazeConfig.bearerToken,
+          RequestBody.create(payload.asJson.toString, JSON)
+        )
       )
-    )
   }
 
   def postRequest(url: String, bearerToken: String, body: RequestBody): Either[Throwable, Response] = {
