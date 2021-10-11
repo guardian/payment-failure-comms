@@ -55,6 +55,7 @@ object SalesforceConnector {
       |SELECT Id,
       |   Status__c,
       |   Contact__r.IdentityID__c,
+      |   SF_Subscription__r.Product_Name__c,
       |   PF_Comms_Last_Stage_Processed__c, 
       |   PF_Comms_Number_of_Attempts__c,
       |   Currency__c,
