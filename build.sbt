@@ -6,6 +6,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "payment-failure-comms",
     assemblyJarName := s"${name.value}.jar",
+    riffRaffAwsRegion := "eu-west-1",
     riffRaffPackageType := assembly.value,
     riffRaffUploadArtifactBucket := Option("riffraff-artifact"),
     riffRaffUploadManifestBucket := Option("riffraff-builds"),
