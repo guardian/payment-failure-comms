@@ -29,14 +29,14 @@ class IdapiConnectorTests extends AnyFlatSpec with should.Matchers with EitherVa
     result.left.value shouldBe a[IdapiRequestFailure]
   }
 
-  "handleRequestResult" should "return an IdapiResponseFailure if the request was successful but an error code was received " in {
+  "handleRequestResult" should "return an IdapiResponseFailure if the request was successful but an error code was received" in {
     val result = IdapiConnector.handleRequestResult[ResponseModel](failureResponse)
 
     result.isLeft shouldBe true
     result.left.value shouldBe a[IdapiResponseFailure]
   }
 
-  "handleRequestResult" should "return an IdapiResponseFailure if the request was successful and the reply is 2xx but the body failed decoding " in {
+  "handleRequestResult" should "return an IdapiResponseFailure if the request was successful and the reply is 2xx but the body failed decoding" in {
     val result = IdapiConnector.handleRequestResult[ResponseModel](unexpectedResponse)
 
     result.isLeft shouldBe true
