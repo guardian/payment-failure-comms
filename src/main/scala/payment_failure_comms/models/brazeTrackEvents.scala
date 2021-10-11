@@ -25,7 +25,8 @@ object BrazeTrackRequest {
     val events = records
       .filter(_.brazeId.isRight)
       .map(record => {
-        // TODO: Throw error if record.record.Status__c doesn't exist in eventNameMapping
+        // TODO: Consider handling case when record.record.Status__c doesn't exist in eventNameMapping differently,
+        // despite it not being a realistic possibility (Possible contents of field need to be altered in Salesforce for that to happen)
         val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
         // TODO: Determine eventTime from record. Entry and exit events will fetch date from different fields
         val eventTime = dateTimeFormatter.format(ZonedDateTime.now)
