@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.0.1"
+ThisBuild / scalaVersion := "3.0.2"
 
 val circeVersion = "0.14.1"
 
@@ -13,10 +13,10 @@ lazy val root = (project in file("."))
     riffRaffArtifactResources += (file("cfn.yaml"), "cfn/cfn.yaml"),
     libraryDependencies ++=
       Seq(
-        "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+        "org.scalatest" %% "scalatest" % "3.2.10" % Test,
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
-        "com.squareup.okhttp3" % "okhttp" % "4.9.1"
+        "com.squareup.okhttp3" % "okhttp" % "4.9.2"
       )
   )
   .enablePlugins(RiffRaffArtifact)
