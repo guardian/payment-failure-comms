@@ -37,13 +37,10 @@ object Handler {
   def augmentRecords(
       idapiConfig: IdapiConfig,
       records: Seq[PaymentFailureRecord]
-  ): Seq[PaymentFailureRecordWithBrazeId] = {
-    records.map(record =>
-      PaymentFailureRecordWithBrazeId(
-        record,
-        IdapiConnector.getBrazeId(idapiConfig, record.Contact__r.IdentityID__c)
-      )
-    )
-  }
+  ): Seq[PaymentFailureRecordWithBrazeId] =
+    for {
+      record <- records
+      brazeId <- IdapiConnector.getBrazeId(idapiConfig, record.Contact__r.IdentityID__c).toSeq
+    } yield PaymentFailureRecordWithBrazeId(record, brazeId)
 
 }
