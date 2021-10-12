@@ -8,7 +8,7 @@ case class BrazeTrackRequest(events: Seq[CustomEvent])
 // Based on https://www.braze.com/docs/api/objects_filters/event_object/
 case class CustomEvent(external_id: String, app_id: String, name: String, time: String, properties: EventProperties)
 
-case class EventProperties(currency: String, amount: Double)
+case class EventProperties(product: String, currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
@@ -31,6 +31,7 @@ object BrazeTrackRequest {
         // TODO: Determine eventTime from record. Entry and exit events will fetch date from different fields
         val eventTime = dateTimeFormatter.format(ZonedDateTime.now)
         val eventProperties = EventProperties(
+          product = record.record.SF_Subscription__r.Product_Name__c,
           currency = record.record.Currency__c,
           amount = record.record.Invoice_Total_Amount__c
         )
