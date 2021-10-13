@@ -10,7 +10,7 @@ import payment_failure_comms.models.{
   PaymentFailureRecordWithBrazeId
 }
 
-object Handler {
+object Handler extends App {
 
   def handleRequest(): Unit = {
     (for {
@@ -34,7 +34,7 @@ object Handler {
     }
   }
 
-  def augmentRecords(
+  private def augmentRecords(
       idapiConfig: IdapiConfig,
       records: Seq[PaymentFailureRecord]
   ): PartitionedRecords =
@@ -45,4 +45,6 @@ object Handler {
           acc.copy(withBrazeId = acc.withBrazeId :+ PaymentFailureRecordWithBrazeId(record, brazeId))
       }
     )
+
+  handleRequest()
 }
