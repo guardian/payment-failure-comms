@@ -37,10 +37,12 @@ object Handler {
   def augmentRecords(
       idapiConfig: IdapiConfig,
       records: Seq[PaymentFailureRecord]
-  ): Seq[PaymentFailureRecordWithBrazeId] =
-    for {
-      record <- records
-      brazeId <- IdapiConnector.getBrazeId(idapiConfig, record.Contact__r.IdentityID__c).toSeq
-    } yield PaymentFailureRecordWithBrazeId(record, brazeId)
-
+  ): PartitionedRecords =
+    records.foldLeft(PartitionedRecords(Nil, Nil))((acc, record) =>
+      IdapiConnector.getBrazeId(idapiConfig, record.Contact__r.IdentityID__c) match {
+        case Left(_) => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
+        case Right(brazeId) =>
+          acc.copy(withBrazeId = acc.withBrazeId :+ PaymentFailureRecordWithBrazeId(record, brazeId))
+      }
+    )
 }
