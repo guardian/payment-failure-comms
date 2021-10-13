@@ -12,18 +12,27 @@ import payment_failure_comms.models.{
 
 object Handler extends App {
 
+  private case class PartitionedRecords(
+      withBrazeId: Seq[PaymentFailureRecordWithBrazeId],
+      withoutBrazeId: Seq[PaymentFailureRecord]
+  )
+
   def handleRequest(): Unit = {
     (for {
       config <- Config()
       sfConnector <- SalesforceConnector(config.salesforce)
 
       records <- sfConnector.getRecordsToProcess()
-      recordsWithBrazeId = augmentRecords(config.idapi, records)
+      augmentedRecords = augmentRecordsWithBrazeId(config.idapi, records)
 
-      brazeRequest = BrazeTrackRequest(recordsWithBrazeId, config.braze.zuoraAppId)
-      brazeResult = BrazeConnector.sendCustomEvent(config.braze, brazeRequest)
+      brazeRequest = BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
+      brazeResult = BrazeConnector.sendCustomEvents(config.braze, brazeRequest)
 
-      updateRecordsRequest = PaymentFailureRecordUpdateRequest(recordsWithBrazeId, brazeResult)
+      updateRecordsRequest = PaymentFailureRecordUpdateRequest(
+        augmentedRecords.withBrazeId,
+        augmentedRecords.withoutBrazeId,
+        brazeResult
+      )
       updateRecordsResult <- sfConnector.updateRecords(updateRecordsRequest)
 
       // TODO: Process updateRecordsResult for eventual failures
@@ -34,7 +43,7 @@ object Handler extends App {
     }
   }
 
-  private def augmentRecords(
+  private def augmentRecordsWithBrazeId(
       idapiConfig: IdapiConfig,
       records: Seq[PaymentFailureRecord]
   ): PartitionedRecords =
