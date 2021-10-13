@@ -22,41 +22,37 @@ object PaymentFailureRecordUpdate {
     "Already Cancelled" -> "Exit"
   )
 
-  def apply(
-      record: PaymentFailureRecordWithBrazeId,
-      brazeResult: Either[Failure, Unit]
-  ): PaymentFailureRecordUpdate = {
+  def apply(brazeResult: Either[Failure, Unit])(record: PaymentFailureRecord): PaymentFailureRecordUpdate =
     brazeResult match {
       case Right(_) => successfulUpdate(record)
       case Left(_)  => failedUpdate(record)
     }
-  }
 
-  def successfulUpdate(augmentedRecord: PaymentFailureRecordWithBrazeId) = {
+  def successfulUpdate(record: PaymentFailureRecord) = {
     PaymentFailureRecordUpdate(
-      Id = augmentedRecord.record.Id,
-      PF_Comms_Last_Stage_Processed__c = eventStageMapping.get(augmentedRecord.record.Status__c),
+      Id = record.Id,
+      PF_Comms_Last_Stage_Processed__c = eventStageMapping.get(record.Status__c),
       PF_Comms_Number_of_Attempts__c = 0
     )
   }
 
-  def failedUpdate(augmentedRecord: PaymentFailureRecordWithBrazeId) = {
+  def failedUpdate(record: PaymentFailureRecord) = {
     PaymentFailureRecordUpdate(
-      Id = augmentedRecord.record.Id,
-      PF_Comms_Last_Stage_Processed__c = augmentedRecord.record.PF_Comms_Last_Stage_Processed__c,
-      PF_Comms_Number_of_Attempts__c = augmentedRecord.record.PF_Comms_Number_of_Attempts__c.getOrElse(0) + 1
+      Id = record.Id,
+      PF_Comms_Last_Stage_Processed__c = record.PF_Comms_Last_Stage_Processed__c,
+      PF_Comms_Number_of_Attempts__c = record.PF_Comms_Number_of_Attempts__c.getOrElse(0) + 1
     )
   }
 }
 
 object PaymentFailureRecordUpdateRequest {
   def apply(
-      augmentedRecords: Seq[PaymentFailureRecordWithBrazeId],
+      recordsWithBrazeId: Seq[PaymentFailureRecordWithBrazeId],
+      recordsWithoutBrazeId: Seq[PaymentFailureRecord],
       brazeResult: Either[Failure, Unit]
-  ): PaymentFailureRecordUpdateRequest = {
+  ): PaymentFailureRecordUpdateRequest =
     PaymentFailureRecordUpdateRequest(
-      augmentedRecords
-        .map(PaymentFailureRecordUpdate(_, brazeResult))
+      recordsWithBrazeId.map(record => PaymentFailureRecordUpdate(brazeResult)(record.record)) ++
+        recordsWithoutBrazeId.map(PaymentFailureRecordUpdate.failedUpdate)
     )
-  }
 }

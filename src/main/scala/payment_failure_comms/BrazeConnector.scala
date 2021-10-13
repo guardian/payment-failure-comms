@@ -11,7 +11,7 @@ object BrazeConnector {
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
   private val http = new OkHttpClient()
 
-  def sendCustomEvent(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
+  def sendCustomEvents(brazeConfig: BrazeConfig, payload: BrazeTrackRequest): Either[Failure, Unit] = {
     if (payload.events.isEmpty)
       Right(())
     else

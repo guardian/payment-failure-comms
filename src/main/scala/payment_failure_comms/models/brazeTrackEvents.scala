@@ -23,7 +23,6 @@ object BrazeTrackRequest {
   def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): BrazeTrackRequest = {
 
     val events = records
-      .filter(_.brazeId.isRight)
       .map(record => {
         // TODO: Consider handling case when record.record.Status__c doesn't exist in eventNameMapping differently,
         // despite it not being a realistic possibility (Possible contents of field need to be altered in Salesforce for that to happen)
@@ -37,7 +36,7 @@ object BrazeTrackRequest {
         )
 
         CustomEvent(
-          external_id = record.brazeId.getOrElse(""), // The OrElse never happens because it's filtered out above
+          external_id = record.brazeId,
           app_id = zuoraAppId,
           name = eventName,
           time = eventTime,
