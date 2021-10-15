@@ -1,31 +1,23 @@
 package payment_failure_comms
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.Decoder
 import io.circe.generic.auto.*
-import io.circe.syntax.*
 import io.circe.parser.decode
-import okhttp3.{HttpUrl, MediaType, OkHttpClient, Request, RequestBody, Response}
-import payment_failure_comms.models.{
-  Failure,
-  PaymentFailureRecord,
-  PaymentFailureRecordUpdateRequest,
-  SFCompositeResponse,
-  SFPaymentFailureRecordWrapper,
-  SFResponse,
-  SalesforceAuth,
-  SalesforceConfig,
-  SalesforceRequestFailure,
-  SalesforceResponseFailure
-}
+import io.circe.syntax.*
+import okhttp3.*
+import payment_failure_comms.models.*
 
+import scala.language.implicitConversions
 import scala.util.Try
+import scala.util.chaining.*
 
-class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String) {
+class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String, logger: LambdaLogger) {
   def getRecordsToProcess(): Either[Failure, Seq[PaymentFailureRecord]] =
-    SalesforceConnector.getRecordsToProcess(authDetails, apiVersion)
+    SalesforceConnector.getRecordsToProcess(authDetails, apiVersion, logger)
 
   def updateRecords(request: PaymentFailureRecordUpdateRequest): Either[Failure, SFCompositeResponse] =
-    SalesforceConnector.updateRecords(authDetails, apiVersion, request)
+    SalesforceConnector.updateRecords(authDetails, apiVersion, request, logger)
 }
 
 object SalesforceConnector {
@@ -34,20 +26,21 @@ object SalesforceConnector {
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
   private val http = new OkHttpClient()
 
-  def apply(sfConfig: SalesforceConfig): Either[Failure, SalesforceConnector] = {
-    auth(sfConfig)
-      .map(new SalesforceConnector(_, sfConfig.apiVersion))
+  def apply(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceConnector] = {
+    auth(sfConfig, logger)
+      .map(new SalesforceConnector(_, sfConfig.apiVersion, logger))
   }
 
-  def auth(sfConfig: SalesforceConfig): Either[Failure, SalesforceAuth] = {
-    handleRequestResult[SalesforceAuth](
-      authRequest(sfConfig)
+  def auth(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceAuth] = {
+    handleRequestResult[SalesforceAuth](logger)(
+      authRequest(sfConfig, logger)
     )
   }
 
   def getRecordsToProcess(
       authDetails: SalesforceAuth,
-      apiVersion: String
+      apiVersion: String,
+      logger: LambdaLogger
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
     // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
     val query =
@@ -64,11 +57,12 @@ object SalesforceConnector {
       |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
       |LIMIT 200""".stripMargin
 
-    handleRequestResult[SFPaymentFailureRecordWrapper](
-      queryRequest(
+    handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
+      responseToQueryRequest(
         url = s"${authDetails.instance_url}/services/data/$apiVersion/query/",
         bearerToken = authDetails.access_token,
-        query = query
+        query = query,
+        logger = logger
       )
     )
       .map(_.records)
@@ -77,25 +71,23 @@ object SalesforceConnector {
   def updateRecords(
       authDetails: SalesforceAuth,
       apiVersion: String,
-      request: PaymentFailureRecordUpdateRequest
+      request: PaymentFailureRecordUpdateRequest,
+      logger: LambdaLogger
   ): Either[Failure, SFCompositeResponse] = {
-    val body = RequestBody.create(request.asJson.toString, JSON)
-
     if (request.records.isEmpty)
       Right(SFCompositeResponse(Seq()))
     else
-      handleRequestResult[Seq[SFResponse]](
-        compositeRequest(
+      handleRequestResult[Seq[SFResponse]](logger)(
+        responseToCompositeRequest(logger)(
           url = s"${authDetails.instance_url}/services/data/$apiVersion/composite/sobjects",
           bearerToken = authDetails.access_token,
-          body
+          body = request.asJson.toString
         )
       )
-        .map(responses => SFCompositeResponse(responses))
-
+        .map(SFCompositeResponse.apply)
   }
 
-  def authRequest(sfConfig: SalesforceConfig): Either[Throwable, Response] = {
+  def authRequest(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Throwable, Response] = {
     val authDetails = Seq(
       "grant_type" -> "password",
       "client_id" -> sfConfig.clientId,
@@ -113,12 +105,26 @@ object SalesforceConnector {
       .post(body)
       .build()
 
+    Log.request(logger)(
+      service = Log.Service.Salesforce,
+      description = Some("Auth"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(authDetails)
+    )
+
     Try(
       http.newCall(request).execute()
     ).toEither
   }
 
-  def queryRequest(url: String, bearerToken: String, query: String): Either[Throwable, Response] = {
+  def responseToQueryRequest(
+      url: String,
+      bearerToken: String,
+      query: String,
+      logger: LambdaLogger
+  ): Either[Throwable, Response] = {
+
     val urlWithParam = HttpUrl
       .parse(url)
       .newBuilder()
@@ -131,28 +137,54 @@ object SalesforceConnector {
       .get()
       .build()
 
+    Log.request(logger)(
+      service = Log.Service.Salesforce,
+      description = Some("Read outstanding payment failure records"),
+      url = request.url().toString,
+      method = request.method(),
+      query = Some(query)
+    )
+
     Try(
       http.newCall(request).execute()
     ).toEither
   }
 
-  def compositeRequest(url: String, bearerToken: String, body: RequestBody): Either[Throwable, Response] = {
+  def responseToCompositeRequest(
+      logger: LambdaLogger
+  )(url: String, bearerToken: String, body: String): Either[Throwable, Response] = {
     val request: Request = new Request.Builder()
       .header("Authorization", s"Bearer ${bearerToken}")
       .url(url)
-      .patch(body)
+      .patch(RequestBody.create(body, JSON))
       .build()
+
+    Log.request(logger)(
+      service = Log.Service.Salesforce,
+      description = Some("Update payment failure records"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(body)
+    )
 
     Try(
       http.newCall(request).execute()
     ).toEither
   }
 
-  def handleRequestResult[T: Decoder](result: Either[Throwable, Response]): Either[Failure, T] = {
+  def handleRequestResult[T: Decoder](logger: LambdaLogger)(result: Either[Throwable, Response]): Either[Failure, T] = {
     result
       .left.map(i => SalesforceRequestFailure(s"Attempt to contact Salesforce failed with error: ${i.toString}"))
       .flatMap(response => {
         val body = response.body().string()
+
+        Log.response(logger)(
+          service = Log.Service.Salesforce,
+          url = response.request().url().toString,
+          method = response.request().method(),
+          responseCode = response.code(),
+          body = Some(body)
+        )
 
         if (response.isSuccessful) {
           decode[T](body)

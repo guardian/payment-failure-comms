@@ -1,5 +1,6 @@
 package payment_failure_comms
 
+import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
 import payment_failure_comms.models.{
   BrazeTrackRequest,
   Config,
@@ -10,23 +11,25 @@ import payment_failure_comms.models.{
   PaymentFailureRecordWithBrazeId
 }
 
-object Handler extends App {
+object Handler {
+
+  def handleRequest(context: Context): Unit = program(context.getLogger)
 
   private case class PartitionedRecords(
       withBrazeId: Seq[PaymentFailureRecordWithBrazeId],
       withoutBrazeId: Seq[PaymentFailureRecord]
   )
 
-  def handleRequest(): Unit = {
+  def program(logger: LambdaLogger): Unit = {
     (for {
       config <- Config()
-      sfConnector <- SalesforceConnector(config.salesforce)
+      sfConnector <- SalesforceConnector(config.salesforce, logger)
 
       records <- sfConnector.getRecordsToProcess()
-      augmentedRecords = augmentRecordsWithBrazeId(config.idapi, records)
+      augmentedRecords = augmentRecordsWithBrazeId(config.idapi, logger)(records)
 
       brazeRequest = BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
-      brazeResult = BrazeConnector.sendCustomEvents(config.braze, brazeRequest)
+      brazeResult = BrazeConnector.sendCustomEvents(config.braze, logger)(brazeRequest)
 
       updateRecordsRequest = PaymentFailureRecordUpdateRequest(
         augmentedRecords.withBrazeId,
@@ -38,22 +41,26 @@ object Handler extends App {
       // TODO: Process updateRecordsResult for eventual failures
 
     } yield ()) match {
-      case Left(failure) => println(failure)
-      case Right(_)      => println("I totally just ran.")
+      case Left(failure) => Log.failure(logger)(failure)
+      case Right(_)      => Log.completion(logger)()
     }
   }
 
-  private def augmentRecordsWithBrazeId(
-      idapiConfig: IdapiConfig,
+  private def augmentRecordsWithBrazeId(idapiConfig: IdapiConfig, logger: LambdaLogger)(
       records: Seq[PaymentFailureRecord]
   ): PartitionedRecords =
     records.foldLeft(PartitionedRecords(Nil, Nil))((acc, record) =>
-      IdapiConnector.getBrazeId(idapiConfig, record.Contact__r.IdentityID__c) match {
+      IdapiConnector.getBrazeId(idapiConfig, logger)(record.Contact__r.IdentityID__c) match {
         case Left(_) => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
         case Right(brazeId) =>
           acc.copy(withBrazeId = acc.withBrazeId :+ PaymentFailureRecordWithBrazeId(record, brazeId))
       }
     )
 
-  handleRequest()
+  final def main(args: Array[String]) = {
+    program(new LambdaLogger {
+      def log(message: String): Unit = println(message)
+      def log(message: Array[Byte]): Unit = println(message)
+    })
+  }
 }
