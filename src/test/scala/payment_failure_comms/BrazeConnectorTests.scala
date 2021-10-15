@@ -10,19 +10,19 @@ class BrazeConnectorTests extends AnyFlatSpec with should.Matchers with EitherVa
 
   // handleRequestResult success cases
   "handleRequestResult" should "return Unit if the request was successul and the reply is 2xx" in {
-    BrazeConnector.handleRequestResult(successfulResponse) shouldBe Right(())
+    BrazeConnector.handleRequestResult(NoOpLogger())(successfulResponse) shouldBe Right(())
   }
 
   // handleRequestResult failure cases
   "handleRequestResult" should "return a BrazeRequestFailure if the request was unsuccessful" in {
-    val result = BrazeConnector.handleRequestResult(requestFailure)
+    val result = BrazeConnector.handleRequestResult(NoOpLogger())(requestFailure)
 
     result.isLeft shouldBe true
     result.left.value shouldBe a[BrazeRequestFailure]
   }
 
   "handleRequestResult" should "return a BrazeResponseFailure if the request was successful but an error code was received" in {
-    val result = BrazeConnector.handleRequestResult(failureResponse)
+    val result = BrazeConnector.handleRequestResult(NoOpLogger())(failureResponse)
 
     result.isLeft shouldBe true
     result.left.value shouldBe a[BrazeResponseFailure]
