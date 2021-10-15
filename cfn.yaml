@@ -8,7 +8,7 @@ Parameters:
       - PROD
       - CODE
       - DEV
-    Default: CODE
+    Default: DEV
   AppName:
     Type: String
     Default: payment-failure-comms
@@ -23,42 +23,31 @@ Mappings:
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
-      SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.theguardian.com
       IdapiStage: PROD
-      IdapiSecretsVersion: 190ff297-e512-4c87-a88b-015f863f8285
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
     CODE:
       Schedule: 'rate(365 days)'
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
-      SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
-      IdapiSecretsVersion: ab25e4c8-cd0a-45ab-991c-39d3fc11445d
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
     DEV:
       Schedule: 'rate(365 days)'
       SalesforceStage: DEV
       SalesforceUsername: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
-      SalesforceAppSecretsVersion: abaa595b-e6c8-4d13-81e0-2d02627536c7
-      SalesforceUserSecretsVersion: 7f0a5fba-166f-44aa-8b1f-b8b1977cce82
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
-      IdapiSecretsVersion: ab25e4c8-cd0a-45ab-991c-39d3fc11445d
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
-      BrazeSecretsVersion: 3cb0e595-6eab-48e0-a382-36b3f7c618d6
 
 Resources:
+
   LogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -73,7 +62,7 @@ Resources:
       Handler: payment_failure_comms.Handler::handleRequest
       Runtime: java8.al2
       CodeUri:
-        Bucket: support-service-lambdas-dist
+        Bucket: membership-dist
         Key: !Sub membership/${Stage}/${AppName}/${AppName}.jar
       Timeout: 120
       MemorySize: 256
@@ -82,60 +71,51 @@ Resources:
           salesforceApiVersion: v46.0
           salesforceInstanceUrl:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:authUrl::${SalesforceAppSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:authUrl}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
               SalesforceAppName: !FindInMap [ StageMap, !Ref Stage, SalesforceAppName ]
-              SalesforceAppSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceAppSecretsVersion ]
           salesforceClientId:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:clientId::${SalesforceAppSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:clientId}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
               SalesforceAppName: !FindInMap [ StageMap, !Ref Stage, SalesforceAppName ]
-              SalesforceAppSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceAppSecretsVersion ]
           salesforceClientSecret:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:clientSecret::${SalesforceAppSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:clientSecret}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
               SalesforceAppName: !FindInMap [ StageMap, !Ref Stage, SalesforceAppName ]
-              SalesforceAppSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceAppSecretsVersion ]
           salesforceUsername:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfUsername::${SalesforceUserSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfUsername}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUserSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceUserSecretsVersion ]
               SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
           salesforcePassword:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfPassword::${SalesforceUserSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfPassword}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUserSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceUserSecretsVersion ]
               SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
           salesforceToken:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfToken::${SalesforceUserSecretsVersion}}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfToken}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUserSecretsVersion: !FindInMap [ StageMap, !Ref Stage, SalesforceUserSecretsVersion ]
               SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
           idapiInstanceUrl: !FindInMap [ StageMap, !Ref Stage, IdapiInstanceUrl ]
           idapiBearerToken: !Sub
-            - '{{resolve:secretsmanager:IDAPI/${IdapiStage}/${AppName}:SecretString:bearerToken::${IdapiSecretsVersion}}}'
+            - '{{resolve:secretsmanager:IDAPI/${IdapiStage}/${AppName}:SecretString:bearerToken}}'
             - IdapiStage: !FindInMap [ StageMap, !Ref Stage, IdapiStage ]
-              IdapiSecretsVersion: !FindInMap [ StageMap, !Ref Stage, IdapiSecretsVersion ]
           brazeInstanceUrl: !FindInMap [ StageMap, !Ref Stage, BrazeInstanceUrl ]
           brazeBearerToken:
             !Sub
-            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:bearerToken::${BrazeSecretsVersion}}}'
+            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:bearerToken}}'
             - BrazeAppGroup: !FindInMap [ StageMap, !Ref Stage, BrazeAppGroup ]
-              BrazeSecretsVersion: !FindInMap [ StageMap, !Ref Stage, BrazeSecretsVersion ]
           zuoraAppIdForBraze:
             !Sub
-            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:zuoraAppId::${BrazeSecretsVersion}}}'
+            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:zuoraAppId}}'
             - BrazeAppGroup: !FindInMap [ StageMap, !Ref Stage, BrazeAppGroup ]
-              BrazeSecretsVersion: !FindInMap [ StageMap, !Ref Stage, BrazeSecretsVersion ]
       Events:
         ScheduledRun:
           Type: Schedule
           Properties:
             Schedule: !FindInMap [ StageMap, !Ref Stage, Schedule ]
-            Description: Runs Soft Opt-In Consent Setter
+            Description: Send payment failure communications
             Enabled: False
