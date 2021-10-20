@@ -12,6 +12,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # Required by actions-assume-aws-role
     permissions:
       id-token: write
       contents: read
@@ -23,6 +24,7 @@ jobs:
       - name: Restore and save dependency cache
         uses: coursier/cache-action@v6
 
+        # Required by sbt riffRaffUpload
       - name: Assume AWS role
         uses: guardian/actions-assume-aws-role@v1
         with:
