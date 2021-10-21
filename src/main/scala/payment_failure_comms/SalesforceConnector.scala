@@ -8,6 +8,8 @@ import io.circe.syntax.*
 import okhttp3.*
 import payment_failure_comms.models.*
 
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.util.chaining.*
@@ -25,6 +27,9 @@ object SalesforceConnector {
   private val urlEncoded = MediaType.parse("application/x-www-form-urlencoded")
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
   private val http = new OkHttpClient()
+
+  implicit val salesforceDateTimeDecoder: Decoder[OffsetDateTime] =
+    Decoder.decodeOffsetDateTimeWithFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxx"))
 
   def apply(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceConnector] = {
     auth(sfConfig, logger)
@@ -49,10 +54,13 @@ object SalesforceConnector {
       |   Status__c,
       |   Contact__r.IdentityID__c,
       |   SF_Subscription__r.Product_Name__c,
+      |   SF_Subscription__r.Cancellation_Request_Date__c,
       |   PF_Comms_Last_Stage_Processed__c, 
       |   PF_Comms_Number_of_Attempts__c,
       |   Currency__c,
-      |   Invoice_Total_Amount__c
+      |   Invoice_Total_Amount__c,
+      |   Initial_Payment_Created_Date__c,
+      |   Last_Attempt_Date__c
       |FROM Payment_Failure__c
       |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
       |LIMIT 200""".stripMargin

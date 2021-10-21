@@ -28,7 +28,7 @@ object Handler {
       records <- sfConnector.getRecordsToProcess()
       augmentedRecords = augmentRecordsWithBrazeId(config.idapi, logger)(records)
 
-      brazeRequest = BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
+      brazeRequest <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
       brazeResult = BrazeConnector.sendCustomEvents(config.braze, logger)(brazeRequest)
 
       updateRecordsRequest = PaymentFailureRecordUpdateRequest(
@@ -37,9 +37,6 @@ object Handler {
         brazeResult
       )
       updateRecordsResult <- sfConnector.updateRecords(updateRecordsRequest)
-
-      // TODO: Process updateRecordsResult for eventual failures
-
     } yield ()) match {
       case Left(failure) => Log.failure(logger)(failure)
       case Right(_)      => Log.completion(logger)()
