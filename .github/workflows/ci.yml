@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  CI:
+
+    runs-on: ubuntu-latest
+
+    # Required by actions-assume-aws-role
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Restore and save dependency cache
+        uses: coursier/cache-action@v6
+
+        # Required by sbt riffRaffUpload
+      - name: Assume AWS role
+        uses: guardian/actions-assume-aws-role@v1
+        with:
+          awsRoleToAssume: ${{ secrets.GU_RIFF_RAFF_ROLE_ARN }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: adopt
+
+      - name: Run SBT tasks
+        run: >
+          sbt
+          clean
+          riffRaffUpload
