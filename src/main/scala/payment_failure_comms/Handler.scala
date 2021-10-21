@@ -13,7 +13,7 @@ object Handler {
   )
 
   def program(logger: LambdaLogger): Unit = {
-    (for {
+    (for
       config <- Config()
       sfConnector <- SalesforceConnector(config.salesforce, logger)
 
