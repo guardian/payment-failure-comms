@@ -1,7 +1,6 @@
-ThisBuild / scalaVersion := "3.1.0"
+ThisBuild / scalaVersion := "2.13.6"
 
 ThisBuild / scalacOptions ++= Seq(
-  "-explain",
   "-deprecation",
   "-Xfatal-warnings"
 )

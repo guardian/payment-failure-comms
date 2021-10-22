@@ -2,10 +2,10 @@ package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.Decoder
-import io.circe.generic.auto.*
+import io.circe.generic.auto._
 import io.circe.parser.decode
 import okhttp3.{MediaType, OkHttpClient, Request, Response}
-import payment_failure_comms.models.*
+import payment_failure_comms.models._
 
 import scala.util.Try
 

@@ -2,8 +2,8 @@ package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.Json
-import io.circe.generic.auto.*
-import io.circe.syntax.*
+import io.circe.generic.auto._
+import io.circe.syntax._
 import payment_failure_comms.models.Failure
 
 object Log {

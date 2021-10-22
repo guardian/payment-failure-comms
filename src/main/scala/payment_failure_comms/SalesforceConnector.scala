@@ -2,15 +2,15 @@ package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.Decoder
-import io.circe.generic.auto.*
+import io.circe.generic.auto._
 import io.circe.parser.decode
-import io.circe.syntax.*
-import okhttp3.*
-import payment_failure_comms.models.*
+import io.circe.syntax._
+import okhttp3._
+import payment_failure_comms.models._
 
 import scala.language.implicitConversions
 import scala.util.Try
-import scala.util.chaining.*
+import scala.util.chaining._
 
 class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String, logger: LambdaLogger) {
   def getRecordsToProcess(): Either[Failure, Seq[PaymentFailureRecord]] =
