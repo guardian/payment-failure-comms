@@ -1,5 +1,11 @@
 ThisBuild / scalaVersion := "3.1.0"
 
+ThisBuild / scalacOptions ++= Seq(
+  "-explain",
+  "-deprecation",
+  "-Xfatal-warnings"
+)
+
 val circeVersion = "0.14.1"
 
 lazy val root = (project in file("."))
