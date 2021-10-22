@@ -12,7 +12,6 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import scala.language.implicitConversions
 import scala.util.Try
-import scala.util.chaining._
 
 class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String, logger: LambdaLogger) {
   def getRecordsToProcess(): Either[Failure, Seq[PaymentFailureRecord]] =
