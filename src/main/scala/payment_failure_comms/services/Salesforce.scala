@@ -95,18 +95,51 @@ object SalesforceLive {
         } yield t.records
       }
 
-      val layer: URLayer[Has[Logging] with Has[Configuration], Has[Salesforce]] = effect.toLayer
+case class SalesforceLive(logging: Logging, configuration: Configuration) extends Salesforce {
 
-      private object Query {
+  private val http = new OkHttpClient()
+
+      private val auth: IO[SalesforceRequestFailure, SalesforceAuth] = ???
+
+  val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
+    for {
+      config <- configuration.get
+      a <- auth
+      url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
+      urlWithParam = HttpUrl
+        .parse(url)
+        .newBuilder()
+        .addQueryParameter("q", Query.fetchPaymentFailures)
+        .build()
+      request = new Request.Builder()
+        .header("Authorization", s"Bearer ${a.access_token}")
+        .url(urlWithParam)
+        .get()
+        .build()
+      _ <- logging.logRequest(
+        service = Log.Service.Salesforce,
+        description = Some("Read outstanding payment failure records"),
+        url = request.url().toString,
+        method = request.method(),
+        query = Some(Query.fetchPaymentFailures)
+      )
+      response <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
+      body = response.body().string()
+      t <- ZIO
+        .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e => SalesforceRequestFailure(e.getMessage))
+    } yield t.records
+  }
+
+  object Query {
 
         // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
-        val fetchPaymentFailures: String =
+        val fetchPaymentFailures =
           """
             |SELECT Id,
             |   Status__c,
             |   Contact__r.IdentityID__c,
             |   SF_Subscription__r.Product_Name__c,
-            |   PF_Comms_Last_Stage_Processed__c, 
+            |   PF_Comms_Last_Stage_Processed__c,
             |   PF_Comms_Number_of_Attempts__c,
             |   Currency__c,
             |   Invoice_Total_Amount__c
