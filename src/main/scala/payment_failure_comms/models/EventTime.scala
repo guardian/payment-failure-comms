@@ -21,7 +21,7 @@ object EventTime {
   def formatDate(d: LocalDate): String =
     d.atStartOfDay(UTC).format(ISO_OFFSET_DATE_TIME)
 
-  def eitherFailOrDate(recordId: String, s: Option[String]): Either[Failure, String] = s.toRight(
+  def eitherFailOrDate(recordId: String, date: Option[String]): Either[Failure, String] = date.toRight(
     SalesforceResponseFailure(s"Missing event-time field in PF record $recordId")
   )
 }
