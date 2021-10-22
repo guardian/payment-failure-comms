@@ -16,28 +16,7 @@ case class PaymentFailureRecord(
     Invoice_Total_Amount__c: Double,
     Initial_Payment_Created_Date__c: Option[OffsetDateTime],
     Last_Attempt_Date__c: Option[LocalDate]
-) {
-  val eventTime: Either[Failure, String] = {
-
-    def formatDateTime(odt: Option[OffsetDateTime]) =
-      optDateTimeToEither(odt.map(_.withOffsetSameInstant(UTC).format(ISO_OFFSET_DATE_TIME)))
-
-    def formatDate(odt: Option[LocalDate]) =
-      optDateTimeToEither(odt.map(_.atStartOfDay(UTC).format(ISO_OFFSET_DATE_TIME)))
-
-    def optDateTimeToEither(s: Option[String]) = s.toRight(
-      SalesforceResponseFailure(s"Missing event-time field in PF record $Id")
-    )
-
-    (Status__c match {
-      case "Error-default" => formatDateTime(Initial_Payment_Created_Date__c)
-      case "Recovered"     => formatDate(Last_Attempt_Date__c)
-      case "Failed" | "Already Cancelled" | "Auto-Cancel Failure" =>
-        formatDateTime(SF_Subscription__r.Cancellation_Request_Date__c)
-      case other => Left(SalesforceResponseFailure(s"Unexpected status value '$Status__c' in PF record $Id"))
-    })
-  }
-}
+)
 
 case class SFContact(IdentityID__c: String)
 

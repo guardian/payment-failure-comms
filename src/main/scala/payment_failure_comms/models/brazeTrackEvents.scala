@@ -33,7 +33,7 @@ object BrazeTrackRequest {
       amount = record.record.Invoice_Total_Amount__c
     )
 
-    record.record.eventTime.map { eventTime =>
+    EventTime(record.record).map { eventTime =>
       CustomEvent(
         external_id = record.brazeId,
         app_id = zuoraAppId,
