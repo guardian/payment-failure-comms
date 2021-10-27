@@ -1,7 +1,5 @@
 package payment_failure_comms.models
 
-import payment_failure_comms.util.Eithers.seqToEither
-
 case class BrazeTrackRequest(events: Seq[CustomEvent])
 
 // Based on https://www.braze.com/docs/api/objects_filters/event_object/
@@ -18,8 +16,19 @@ object BrazeTrackRequest {
     "Already Cancelled" -> "subscription_cancelation"
   )
 
-  def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): Either[Failure, BrazeTrackRequest] =
-    seqToEither(records.map(toCustomEvent(zuoraAppId))).map { BrazeTrackRequest.apply }
+  def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): Either[Failure, BrazeTrackRequest] = {
+
+    val customEvent = toCustomEvent(zuoraAppId) _
+
+    def go(acc: Seq[CustomEvent], toGo: Seq[PaymentFailureRecordWithBrazeId]): Either[Failure, Seq[CustomEvent]] = {
+      toGo match {
+        case hd :: tl => customEvent(hd).flatMap(event => go(acc :+ event, tl))
+        case _        => Right(acc)
+      }
+    }
+
+    go(Nil, records).map(BrazeTrackRequest.apply)
+  }
 
   private def toCustomEvent(
       zuoraAppId: String

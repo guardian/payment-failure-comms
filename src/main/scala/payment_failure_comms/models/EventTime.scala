@@ -15,7 +15,7 @@ object EventTime {
         case "Recovered" => failOrDate(record.Last_Attempt_Date__c.map(formatDate))
         case "Failed" | "Already Cancelled" =>
           failOrDate(record.SF_Subscription__r.Cancellation_Request_Date__c.map(formatDateTime))
-        case "Auto-Cancel Failure" => failOrDate(record.Cut_Off_Date__c.map(formatDate))
+        case "Auto-Cancel Failure" => Right(formatDate(record.Cut_Off_Date__c))
         case other => Left(SalesforceResponseFailure(s"Unexpected status value '$other' in PF record ${record.Id}"))
       }
   }
