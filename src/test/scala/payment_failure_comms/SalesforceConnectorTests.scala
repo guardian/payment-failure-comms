@@ -1,7 +1,7 @@
 package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
-import io.circe.generic.auto.*
+import io.circe.generic.auto._
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

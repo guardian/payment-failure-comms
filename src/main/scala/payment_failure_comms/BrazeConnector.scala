@@ -1,8 +1,8 @@
 package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
-import io.circe.generic.auto.*
-import io.circe.syntax.*
+import io.circe.generic.auto._
+import io.circe.syntax._
 import okhttp3.{MediaType, OkHttpClient, Request, RequestBody, Response}
 import payment_failure_comms.models.{BrazeConfig, BrazeRequestFailure, BrazeResponseFailure, BrazeTrackRequest, Failure}
 
