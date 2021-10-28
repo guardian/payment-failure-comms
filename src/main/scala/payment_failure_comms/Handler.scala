@@ -1,15 +1,7 @@
 package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
-import payment_failure_comms.models.{
-  BrazeTrackRequest,
-  Config,
-  Failure,
-  IdapiConfig,
-  PaymentFailureRecord,
-  PaymentFailureRecordUpdateRequest,
-  PaymentFailureRecordWithBrazeId
-}
+import payment_failure_comms.models._
 
 object Handler {
 
@@ -28,7 +20,9 @@ object Handler {
       records <- sfConnector.getRecordsToProcess()
       augmentedRecords = augmentRecordsWithBrazeId(config.idapi, logger)(records)
 
-      brazeRequest <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
+      currentEventsRequest = BrazeUserRequest.fromPaymentFailureRecords(augmentedRecords.withBrazeId)
+      currentEventsResponse <- BrazeConnector.fetchCustomEvents(config.braze, logger)(currentEventsRequest)
+      brazeRequest <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId, currentEventsResponse)
       brazeResult = BrazeConnector.sendCustomEvents(config.braze, logger)(brazeRequest)
 
       updateRecordsRequest = PaymentFailureRecordUpdateRequest(
@@ -36,7 +30,7 @@ object Handler {
         augmentedRecords.withoutBrazeId,
         brazeResult
       )
-      updateRecordsResult <- sfConnector.updateRecords(updateRecordsRequest)
+      _ <- sfConnector.updateRecords(updateRecordsRequest)
     } yield ()) match {
       case Left(failure) => Log.failure(logger)(failure)
       case Right(_)      => Log.completion(logger)()
@@ -54,7 +48,7 @@ object Handler {
       }
     )
 
-  final def main(args: Array[String]) = {
+  final def main(args: Array[String]): Unit = {
     program(new LambdaLogger {
       def log(message: String): Unit = println(message)
       def log(message: Array[Byte]): Unit = println(message)

@@ -1,5 +1,8 @@
 package payment_failure_comms.models
 
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 case class BrazeTrackRequest(events: Seq[CustomEvent])
 
 // Based on https://www.braze.com/docs/api/objects_filters/event_object/
@@ -9,6 +12,7 @@ case class EventProperties(product: String, currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
+  val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ")
   val eventNameMapping = Map(
     "In Progress" -> "payment_failure",
     "Recovered" -> "payment_recovery",
@@ -16,7 +20,21 @@ object BrazeTrackRequest {
     "Already Cancelled" -> "subscription_cancelation"
   )
 
-  def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): Either[Failure, BrazeTrackRequest] = {
+  private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
+    events.filterNot { event =>
+      val eventTime = ZonedDateTime.parse(event.time)
+      eventsAlreadyWritten.users.exists { user =>
+        user.external_id == event.external_id &&
+        user.custom_events.exists(_.name == event.name) &&
+        user.custom_events.exists(!_.last.isBefore(eventTime))
+      }
+    }
+
+  def apply(
+      records: Seq[PaymentFailureRecordWithBrazeId],
+      zuoraAppId: String,
+      eventsAlreadyWritten: BrazeUserResponse
+  ): Either[Failure, BrazeTrackRequest] = {
 
     val customEvent = toCustomEvent(zuoraAppId) _
 
@@ -30,7 +48,10 @@ object BrazeTrackRequest {
         case _ => Right(soFar)
       }
 
-    process(Nil, records).map(BrazeTrackRequest.apply)
+    process(Nil, records).map { events =>
+      val newEvents = diff(events, eventsAlreadyWritten)
+      BrazeTrackRequest(newEvents)
+    }
   }
 
   private def toCustomEvent(
