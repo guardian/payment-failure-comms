@@ -1,65 +1,99 @@
 package payment_failure_comms.services
 
-import okhttp3.{HttpUrl, OkHttpClient, Request}
+import com.amazonaws.services.lambda.runtime.LambdaLogger
+import io.circe.generic.auto._
+import io.circe.parser.decode
+import okhttp3.{HttpUrl, OkHttpClient, Request, RequestBody}
 import payment_failure_comms.Log
-import payment_failure_comms.SalesforceConnector.http
+import payment_failure_comms.SalesforceConnector.urlEncoded
 import payment_failure_comms.models.{
   PaymentFailureRecord,
   SFPaymentFailureRecordWrapper,
   SalesforceAuth,
   SalesforceRequestFailure
 }
-import zio.{IO, ZIO}
-
-import scala.util.Try
-import io.circe.Decoder
-import io.circe.generic.auto._
-import io.circe.parser.decode
-import io.circe.syntax._
+import zio.Console
+import zio.{Has, IO, URIO, URLayer, ZIO, ZIOAppArgs, ZIOAppDefault}
 
 trait Salesforce {
   def fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]]
 }
 
-case class SalesforceLive(logging: Logging, configuration: Configuration) extends Salesforce {
+object Salesforce {
+  val fetchPaymentFailureRecords: ZIO[Has[Salesforce], SalesforceRequestFailure, Seq[PaymentFailureRecord]] =
+    ZIO.serviceWith(_.fetchPaymentFailureRecords)
+}
+
+object SalesforceLive {
 
   private val http = new OkHttpClient()
 
-  private val auth: IO[SalesforceRequestFailure, SalesforceAuth] = ???
-
-  val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
+  private val auth: ZIO[Configuration, SalesforceRequestFailure, SalesforceAuth] = {
     for {
-      config <- configuration.get
-      a <- auth
-      url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
-      urlWithParam = HttpUrl
-        .parse(url)
-        .newBuilder()
-        .addQueryParameter("q", Query.fetchPaymentFailures)
-        .build()
-      request = new Request.Builder()
-        .header("Authorization", s"Bearer ${a.access_token}")
-        .url(urlWithParam)
-        .get()
-        .build()
-      _ <- logging.logRequest(
-        service = Log.Service.Salesforce,
-        description = Some("Read outstanding payment failure records"),
-        url = request.url().toString,
-        method = request.method(),
-        query = Some(Query.fetchPaymentFailures)
-      )
-      response <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
-      body = response.body().string()
-      t <- ZIO
-        .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e => SalesforceRequestFailure(e.getMessage))
-    } yield t.records
+      config <- ZIO.service[Configuration].map()
+    } yield {}
+    val authDetails = Seq(
+      "grant_type" -> "password",
+      "client_id" -> sfConfig.clientId,
+      "client_secret" -> sfConfig.clientSecret,
+      "username" -> sfConfig.username,
+      "password" -> s"${sfConfig.password}${sfConfig.token}"
+    )
+      .map(_.productIterator.mkString("="))
+      .mkString("&")
+
+    val body = RequestBody.create(authDetails, urlEncoded)
+
+    val request = new Request.Builder()
+      .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
+      .post(body)
+      .build()
+
   }
 
-  object Query {
+  private val effect: URIO[Has[Logging] with Has[Configuration], Salesforce] =
+    for {
+      logging <- ZIO.service[Logging]
+      configService <- ZIO.service[Configuration]
+      config <- configService.get
+    } yield new Salesforce {
+      val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] =
+        for {
+          a <- auth
+          url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
+          urlWithParam = HttpUrl
+            .parse(url)
+            .newBuilder()
+            .addQueryParameter("q", Query.fetchPaymentFailures)
+            .build()
+          request = new Request.Builder()
+            .header("Authorization", s"Bearer ${a.access_token}")
+            .url(urlWithParam)
+            .get()
+            .build()
+          _ <- logging.logRequest(
+            service = Log.Service.Salesforce,
+            description = Some("Read outstanding payment failure records"),
+            url = request.url().toString,
+            method = request.method(),
+            query = Some(Query.fetchPaymentFailures)
+          )
+          // TODO should be closed after use
+          response <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
+          body = response.body().string()
+          t <- ZIO
+            .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e =>
+              SalesforceRequestFailure(e.getMessage)
+            )
+        } yield t.records
+    }
+
+  val layer: URLayer[Has[Logging] with Has[Configuration], Has[Salesforce]] = effect.toLayer
+
+  private object Query {
 
     // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
-    val fetchPaymentFailures =
+    val fetchPaymentFailures: String =
       """
         |SELECT Id,
         |   Status__c,
@@ -70,7 +104,26 @@ case class SalesforceLive(logging: Logging, configuration: Configuration) extend
         |   Currency__c,
         |   Invoice_Total_Amount__c
         |FROM Payment_Failure__c
-        |WHERE PF_Comms_Status__c In ('', 'Ready to process exit','Ready to process entry')
+        |WHERE PF_Comms_Status__c In ('Ready to process exit','Ready to process entry')
         |LIMIT 200""".stripMargin
+  }
+}
+
+object SalesforceClient extends ZIOAppDefault {
+
+  private val program = for {
+    records <- Salesforce.fetchPaymentFailureRecords
+    _ <- Console.printLine(records)
+  } yield ()
+
+  def run: ZIO[zio.ZEnv with Has[ZIOAppArgs], Any, Any] = {
+    for {
+      console <- ZIO.service[Console]
+      lambdaLogger = new LambdaLogger {
+        def log(message: String): Unit = console.printLine(message)
+        def log(message: Array[Byte]): Unit = console.printLine(message)
+      }
+      _ <- program.injectCustom(LoggingLive.layer(lambdaLogger), ConfigurationLive.layer, SalesforceLive.layer)
+    } yield ()
   }
 }
