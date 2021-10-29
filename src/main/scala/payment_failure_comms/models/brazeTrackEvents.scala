@@ -20,14 +20,17 @@ object BrazeTrackRequest {
 
     val customEvent = toCustomEvent(zuoraAppId) _
 
-    def go(acc: Seq[CustomEvent], toGo: Seq[PaymentFailureRecordWithBrazeId]): Either[Failure, Seq[CustomEvent]] = {
+    def process(
+        soFar: Seq[CustomEvent],
+        toGo: Seq[PaymentFailureRecordWithBrazeId]
+    ): Either[Failure, Seq[CustomEvent]] =
       toGo match {
-        case hd :: tl => customEvent(hd).flatMap(event => go(acc :+ event, tl))
-        case _        => Right(acc)
+        case currRecord :: restOfRecords =>
+          customEvent(currRecord).flatMap(event => process(soFar :+ event, restOfRecords))
+        case _ => Right(soFar)
       }
-    }
 
-    go(Nil, records).map(BrazeTrackRequest.apply)
+    process(Nil, records).map(BrazeTrackRequest.apply)
   }
 
   private def toCustomEvent(
