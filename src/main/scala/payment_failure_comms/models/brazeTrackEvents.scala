@@ -1,8 +1,5 @@
 package payment_failure_comms.models
 
-import java.time.format.DateTimeFormatter
-import java.time.ZonedDateTime
-
 case class BrazeTrackRequest(events: Seq[CustomEvent])
 
 // Based on https://www.braze.com/docs/api/objects_filters/event_object/
@@ -12,7 +9,6 @@ case class EventProperties(product: String, currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
-  val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ")
   val eventNameMapping = Map(
     "In Progress" -> "payment_failure",
     "Recovered" -> "payment_recovery",
@@ -20,31 +16,43 @@ object BrazeTrackRequest {
     "Already Cancelled" -> "subscription_cancelation"
   )
 
-  def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): BrazeTrackRequest = {
+  def apply(records: Seq[PaymentFailureRecordWithBrazeId], zuoraAppId: String): Either[Failure, BrazeTrackRequest] = {
 
-    val events = records
-      .map(record => {
-        // TODO: Consider handling case when record.record.Status__c doesn't exist in eventNameMapping differently,
-        // despite it not being a realistic possibility (Possible contents of field need to be altered in Salesforce for that to happen)
-        val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
-        // TODO: Determine eventTime from record. Entry and exit events will fetch date from different fields
-        val eventTime = dateTimeFormatter.format(ZonedDateTime.now)
-        val eventProperties = EventProperties(
-          product = record.record.SF_Subscription__r.Product_Name__c,
-          currency = record.record.Currency__c,
-          amount = record.record.Invoice_Total_Amount__c
-        )
+    val customEvent = toCustomEvent(zuoraAppId) _
 
-        CustomEvent(
-          external_id = record.brazeId,
-          app_id = zuoraAppId,
-          name = eventName,
-          time = eventTime,
-          properties = eventProperties
-        )
-      })
+    def process(
+        soFar: Seq[CustomEvent],
+        toGo: Seq[PaymentFailureRecordWithBrazeId]
+    ): Either[Failure, Seq[CustomEvent]] =
+      toGo match {
+        case currRecord :: restOfRecords =>
+          customEvent(currRecord).flatMap(event => process(soFar :+ event, restOfRecords))
+        case _ => Right(soFar)
+      }
 
-    BrazeTrackRequest(events)
+    process(Nil, records).map(BrazeTrackRequest.apply)
   }
 
+  private def toCustomEvent(
+      zuoraAppId: String
+  )(record: PaymentFailureRecordWithBrazeId): Either[Failure, CustomEvent] = {
+    // TODO: Consider handling case when record.record.Status__c doesn't exist in eventNameMapping differently,
+    // despite it not being a realistic possibility (Possible contents of field need to be altered in Salesforce for that to happen)
+    val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
+    val eventProperties = EventProperties(
+      product = record.record.SF_Subscription__r.Product_Name__c,
+      currency = record.record.Currency__c,
+      amount = record.record.Invoice_Total_Amount__c
+    )
+
+    EventTime(record.record).map { eventTime =>
+      CustomEvent(
+        external_id = record.brazeId,
+        app_id = zuoraAppId,
+        name = eventName,
+        time = eventTime,
+        properties = eventProperties
+      )
+    }
+  }
 }
