@@ -1,8 +1,7 @@
 package payment_failure_comms.services
 
-import okhttp3.{HttpUrl, OkHttpClient, Request}
+import okhttp3.{HttpUrl, MediaType, OkHttpClient, Request}
 import payment_failure_comms.Log
-import payment_failure_comms.SalesforceConnector.http
 import payment_failure_comms.models.{
   PaymentFailureRecord,
   SFPaymentFailureRecordWrapper,
@@ -17,6 +16,8 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import io.circe.syntax._
 
+import scala.util.Try
+
 trait Salesforce {
   def fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]]
 }
@@ -28,29 +29,36 @@ object Salesforce {
 
 object SalesforceLive {
 
+  private val urlEncoded = MediaType.parse("application/x-www-form-urlencoded")
   private val http = new OkHttpClient()
 
   private val auth: ZIO[Configuration, SalesforceRequestFailure, SalesforceAuth] = {
     for {
-      config <- ZIO.service[Configuration].map()
-    } yield {}
-    val authDetails = Seq(
-      "grant_type" -> "password",
-      "client_id" -> sfConfig.clientId,
-      "client_secret" -> sfConfig.clientSecret,
-      "username" -> sfConfig.username,
-      "password" -> s"${sfConfig.password}${sfConfig.token}"
-    )
-      .map(_.productIterator.mkString("="))
-      .mkString("&")
+      configService <- ZIO.service[Configuration]
+      config <- configService.get
+      sfConfig = config.salesforce
+    } yield {
+      val authDetails = Seq(
+        "grant_type" -> "password",
+        "client_id" -> sfConfig.clientId,
+        "client_secret" -> sfConfig.clientSecret,
+        "username" -> sfConfig.username,
+        "password" -> s"${sfConfig.password}${sfConfig.token}"
+      )
+        .map(_.productIterator.mkString("="))
+        .mkString("&")
 
-    val body = RequestBody.create(authDetails, urlEncoded)
+      val body = RequestBody.create(authDetails, urlEncoded)
 
-    val request = new Request.Builder()
-      .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
-      .post(body)
-      .build()
+      val request = new Request.Builder()
+        .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
+        .post(body)
+        .build()
 
+      Try(
+        http.newCall(request).execute()
+      ).toEither
+    }
   }
 
   private val effect: URIO[Has[Logging] with Has[Configuration], Salesforce] =
