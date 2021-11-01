@@ -1,7 +1,6 @@
 package payment_failure_comms.models
 
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 case class BrazeTrackRequest(events: Seq[CustomEvent])
 
@@ -12,7 +11,6 @@ case class EventProperties(product: String, currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
-  val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss:SSSZ")
   val eventNameMapping = Map(
     "In Progress" -> "payment_failure",
     "Recovered" -> "payment_recovery",
