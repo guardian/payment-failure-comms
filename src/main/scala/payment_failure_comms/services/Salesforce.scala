@@ -10,14 +10,16 @@ import zio.{Console, Has, IO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 trait Salesforce {
   def fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]]
-  def updatePaymentFailureRecords(request: PaymentFailureRecordUpdateRequest):IO[SalesforceResponseFailure, Unit]
+  def updatePaymentFailureRecords(request: PaymentFailureRecordUpdateRequest): IO[SalesforceResponseFailure, Unit]
 }
 
 object Salesforce {
   val fetchPaymentFailureRecords: ZIO[Has[Salesforce], SalesforceRequestFailure, Seq[PaymentFailureRecord]] =
     ZIO.serviceWith(_.fetchPaymentFailureRecords)
 
-  def updatePaymentFailureRecords(request: PaymentFailureRecordUpdateRequest):ZIO[Has[Salesforce], SalesforceResponseFailure,Unit] = ZIO.serviceWith(_.updatePaymentFailureRecords(request))
+  def updatePaymentFailureRecords(
+      request: PaymentFailureRecordUpdateRequest
+  ): ZIO[Has[Salesforce], SalesforceResponseFailure, Unit] = ZIO.serviceWith(_.updatePaymentFailureRecords(request))
 }
 
 object SalesforceLive {
@@ -59,14 +61,14 @@ object SalesforceLive {
     } yield new Salesforce {
 
       val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
-        val url = s"${ config.salesforce.instanceUrl }/services/data/${ config.salesforce.apiVersion }/query/"
+        val url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
         val urlWithParam = HttpUrl
           .parse(url)
           .newBuilder()
           .addQueryParameter("q", Query.fetchPaymentFailures)
           .build()
         val request = new Request.Builder()
-          .header("Authorization", s"Bearer ${ a.access_token }")
+          .header("Authorization", s"Bearer ${a.access_token}")
           .url(urlWithParam)
           .get()
           .build()
@@ -83,8 +85,8 @@ object SalesforceLive {
           body = response.body().string()
           t <- ZIO
             .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e =>
-            SalesforceRequestFailure(e.getMessage)
-          )
+              SalesforceRequestFailure(e.getMessage)
+            )
         } yield t.records
       }
 
@@ -93,44 +95,13 @@ object SalesforceLive {
         IO.succeed(())
     }
 
-      val layer: ZLayer[Has[Logging] with Has[Configuration], Failure, Has[Salesforce]] = effect.toLayer
-
-      private val auth: IO[SalesforceRequestFailure, SalesforceAuth] = ???
-
-  val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
-    for {
-      config <- configuration.get
-      a <- auth
-      url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
-      urlWithParam = HttpUrl
-        .parse(url)
-        .newBuilder()
-        .addQueryParameter("q", Query.fetchPaymentFailures)
-        .build()
-      request = new Request.Builder()
-        .header("Authorization", s"Bearer ${a.access_token}")
-        .url(urlWithParam)
-        .get()
-        .build()
-      _ <- logging.logRequest(
-        service = Log.Service.Salesforce,
-        description = Some("Read outstanding payment failure records"),
-        url = request.url().toString,
-        method = request.method(),
-        query = Some(Query.fetchPaymentFailures)
-      )
-      response <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
-      body = response.body().string()
-      t <- ZIO
-        .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e => SalesforceRequestFailure(e.getMessage))
-    } yield t.records
-  }
+    val layer: ZLayer[Has[Logging] with Has[Configuration], Failure, Has[Salesforce]] = effect.toLayer
 
   object Query {
 
-        // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
-        val fetchPaymentFailures =
-          """
+    // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
+    val fetchPaymentFailures: String =
+      """
             |SELECT Id,
             |   Status__c,
             |   Contact__r.IdentityID__c,
@@ -142,8 +113,8 @@ object SalesforceLive {
             |FROM Payment_Failure__c
             |WHERE PF_Comms_Status__c In ('Ready to process exit','Ready to process entry')
             |LIMIT 200""".stripMargin
-      }
-    }
+  }
+}
 
 object SalesforceClient extends ZIOAppDefault {
 
