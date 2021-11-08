@@ -16,8 +16,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
           Product_Name__c = "prod1",
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))
         ),
-        Status__c = status,
-        PF_Comms_Status__c = "Ready to process exit",
+        PF_Comms_Status__c = status,
         PF_Comms_Last_Stage_Processed__c = None,
         PF_Comms_Number_of_Attempts__c = Some(0),
         Currency__c = "GBP",
@@ -41,9 +40,9 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
   it should "succeed if all records are valid" in {
     BrazeTrackRequest(
       records = Seq(
-        mkPaymentFailureRecord(1, "Recovered"),
-        mkPaymentFailureRecord(2, "Failed"),
-        mkPaymentFailureRecord(3, "Auto-Cancel Failure")
+        mkPaymentFailureRecord(1, "Ready to send recovery event"),
+        mkPaymentFailureRecord(2, "Ready to send voluntary cancel event"),
+        mkPaymentFailureRecord(3, "Ready to send auto cancel event")
       ),
       zuoraAppId = "z1",
       eventsAlreadyWritten = BrazeUserResponse(Nil)
@@ -60,14 +59,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
           CustomEvent(
             external_id = "b2",
             app_id = "z1",
-            name = "",
+            name = "cancel_voluntary",
             time = "2021-10-25T10:15:01Z",
             properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
           ),
           CustomEvent(
             external_id = "b3",
             app_id = "z1",
-            name = "payment_failure_cancelation",
+            name = "cancel_auto",
             time = "2021-10-27T00:00:00Z",
             properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
           )
@@ -79,13 +78,13 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
   it should "fail if any record is invalid" in {
     BrazeTrackRequest(
       records = Seq(
-        mkPaymentFailureRecord(1, "Recovered"),
+        mkPaymentFailureRecord(1, "Ready to send recovery event"),
         mkPaymentFailureRecord(2, "Unknown status"),
-        mkPaymentFailureRecord(3, "Auto-Cancel Failure")
+        mkPaymentFailureRecord(3, "Ready to send auto cancel event")
       ),
       zuoraAppId = "z1",
       eventsAlreadyWritten = BrazeUserResponse(Nil)
-    ) shouldBe Left(SalesforceResponseFailure("Unexpected status value 'Unknown status' in PF record 2"))
+    ) shouldBe Left(SalesforceResponseFailure("Unexpected PF_Comms_Status__c value 'Unknown status' in PF record '2'"))
   }
 
   "diff" should "give an empty list if no events" in {

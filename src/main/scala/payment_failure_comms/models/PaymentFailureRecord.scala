@@ -1,15 +1,11 @@
 package payment_failure_comms.models
 
-import java.time.ZoneOffset.UTC
-import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
-import java.time.{LocalDate, OffsetDateTime, ZoneOffset}
+import java.time.{LocalDate, OffsetDateTime}
 
 case class PaymentFailureRecord(
     Id: String,
     Contact__r: SFContact,
     SF_Subscription__r: SFSubscription,
-    Status__c: String,
     PF_Comms_Status__c: String,
     PF_Comms_Last_Stage_Processed__c: Option[String] = None,
     PF_Comms_Number_of_Attempts__c: Option[Int] = Some(0),

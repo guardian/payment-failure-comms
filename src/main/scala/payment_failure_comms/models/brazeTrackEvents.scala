@@ -11,11 +11,11 @@ case class EventProperties(product: String, currency: String, amount: Double)
 
 object BrazeTrackRequest {
 
-  val eventNameMapping = Map(
-    "In Progress" -> "payment_failure",
-    "Recovered" -> "payment_recovery",
-    "Auto-Cancel Failure" -> "payment_failure_cancelation",
-    "Already Cancelled" -> "subscription_cancelation"
+  private val eventNameMapping = Map(
+    "Ready to send entry event" -> "payment_failure",
+    "Ready to send recovery event" -> "payment_recovery",
+    "Ready to send voluntary cancel event" -> "cancel_voluntary",
+    "Ready to send auto cancel event" -> "cancel_auto"
   )
 
   private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
@@ -54,24 +54,24 @@ object BrazeTrackRequest {
 
   private def toCustomEvent(
       zuoraAppId: String
-  )(record: PaymentFailureRecordWithBrazeId): Either[Failure, CustomEvent] = {
-    // TODO: Consider handling case when record.record.Status__c doesn't exist in eventNameMapping differently,
-    // despite it not being a realistic possibility (Possible contents of field need to be altered in Salesforce for that to happen)
-    val eventName = eventNameMapping.getOrElse(record.record.Status__c, "")
-    val eventProperties = EventProperties(
-      product = record.record.SF_Subscription__r.Product_Name__c,
-      currency = record.record.Currency__c,
-      amount = record.record.Invoice_Total_Amount__c
-    )
-
-    EventTime(record.record).map { eventTime =>
-      CustomEvent(
-        external_id = record.brazeId,
-        app_id = zuoraAppId,
-        name = eventName,
-        time = eventTime,
-        properties = eventProperties
+  )(record: PaymentFailureRecordWithBrazeId): Either[Failure, CustomEvent] =
+    for {
+      eventName <- eventNameMapping
+        .get(record.record.PF_Comms_Status__c).toRight(
+          SalesforceResponseFailure(
+            s"Unexpected PF_Comms_Status__c value '${record.record.PF_Comms_Status__c}' in PF record '${record.record.Id}'"
+          )
+        )
+      eventTime <- EventTime(record.record)
+    } yield CustomEvent(
+      external_id = record.brazeId,
+      app_id = zuoraAppId,
+      name = eventName,
+      time = eventTime,
+      properties = EventProperties(
+        product = record.record.SF_Subscription__r.Product_Name__c,
+        currency = record.record.Currency__c,
+        amount = record.record.Invoice_Total_Amount__c
       )
-    }
-  }
+    )
 }

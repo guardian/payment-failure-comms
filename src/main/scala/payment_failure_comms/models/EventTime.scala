@@ -8,16 +8,14 @@ object EventTime {
 
   def apply(record: PaymentFailureRecord): Either[Failure, String] = {
     val failOrDate = eitherFailOrDate(record.Id) _
-    if (record.PF_Comms_Status__c == "Ready to process entry")
-      failOrDate(record.Initial_Payment_Created_Date__c.map(formatDateTime))
-    else
-      record.Status__c match {
-        case "Recovered" => failOrDate(record.Last_Attempt_Date__c.map(formatDate))
-        case "Failed" | "Already Cancelled" =>
-          failOrDate(record.SF_Subscription__r.Cancellation_Request_Date__c.map(formatDateTime))
-        case "Auto-Cancel Failure" => Right(formatDate(record.Cut_Off_Date__c))
-        case other => Left(SalesforceResponseFailure(s"Unexpected status value '$other' in PF record ${record.Id}"))
-      }
+    record.PF_Comms_Status__c match {
+      case "Ready to send entry event"    => failOrDate(record.Initial_Payment_Created_Date__c.map(formatDateTime))
+      case "Ready to send recovery event" => failOrDate(record.Last_Attempt_Date__c.map(formatDate))
+      case "Ready to send voluntary cancel event" =>
+        failOrDate(record.SF_Subscription__r.Cancellation_Request_Date__c.map(formatDateTime))
+      case "Ready to send auto cancel event" => Right(formatDate(record.Cut_Off_Date__c))
+      case other => Left(SalesforceResponseFailure(s"Unexpected status value '$other' in PF record ${record.Id}"))
+    }
   }
 
   def formatDateTime(odt: OffsetDateTime): String =
