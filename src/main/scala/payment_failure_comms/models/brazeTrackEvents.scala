@@ -12,10 +12,10 @@ case class EventProperties(product: String, currency: String, amount: Double)
 object BrazeTrackRequest {
 
   private val eventNameMapping = Map(
-    "Ready to send entry event" -> "payment_failure",
-    "Ready to send recovery event" -> "payment_recovery",
-    "Ready to send voluntary cancel event" -> "cancel_voluntary",
-    "Ready to send auto cancel event" -> "cancel_auto"
+    "Ready to send entry event" -> "pf_entry",
+    "Ready to send recovery event" -> "pf_recovery",
+    "Ready to send voluntary cancel event" -> "pf_cancel_voluntary",
+    "Ready to send auto cancel event" -> "pf_cancel_auto"
   )
 
   private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
