@@ -16,10 +16,10 @@ case class PaymentFailureRecordUpdateRequest(records: Seq[PaymentFailureRecordUp
 object PaymentFailureRecordUpdate {
 
   val eventStageMapping = Map(
-    "In Progress" -> "Entry",
-    "Recovered" -> "Exit",
-    "Auto-Cancel Failure" -> "Exit",
-    "Already Cancelled" -> "Exit"
+    "Ready to send entry event" -> "Entry",
+    "Ready to send recovery event" -> "Exit",
+    "Ready to send voluntary cancel event" -> "Exit",
+    "Ready to send auto cancel event" -> "Exit"
   )
 
   def apply(brazeResult: Either[Failure, Unit])(record: PaymentFailureRecord): PaymentFailureRecordUpdate =
@@ -28,15 +28,15 @@ object PaymentFailureRecordUpdate {
       case Left(_)  => failedUpdate(record)
     }
 
-  def successfulUpdate(record: PaymentFailureRecord) = {
+  def successfulUpdate(record: PaymentFailureRecord): PaymentFailureRecordUpdate = {
     PaymentFailureRecordUpdate(
       Id = record.Id,
-      PF_Comms_Last_Stage_Processed__c = eventStageMapping.get(record.Status__c),
+      PF_Comms_Last_Stage_Processed__c = eventStageMapping.get(record.PF_Comms_Status__c),
       PF_Comms_Number_of_Attempts__c = 0
     )
   }
 
-  def failedUpdate(record: PaymentFailureRecord) = {
+  def failedUpdate(record: PaymentFailureRecord): PaymentFailureRecordUpdate = {
     PaymentFailureRecordUpdate(
       Id = record.Id,
       PF_Comms_Last_Stage_Processed__c = record.PF_Comms_Last_Stage_Processed__c,

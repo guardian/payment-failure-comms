@@ -12,7 +12,6 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import scala.language.implicitConversions
 import scala.util.Try
-import scala.util.chaining._
 
 class SalesforceConnector(authDetails: SalesforceAuth, apiVersion: String, logger: LambdaLogger) {
   def getRecordsToProcess(): Either[Failure, Seq[PaymentFailureRecord]] =
@@ -50,21 +49,27 @@ object SalesforceConnector {
     // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
     val query =
       """
-      |SELECT Id,
-      |   Status__c,
-      |   Contact__r.IdentityID__c,
-      |   SF_Subscription__r.Product_Name__c,
-      |   SF_Subscription__r.Cancellation_Request_Date__c,
-      |   PF_Comms_Status__c, 
-      |   PF_Comms_Last_Stage_Processed__c, 
-      |   PF_Comms_Number_of_Attempts__c,
-      |   Currency__c,
-      |   Invoice_Total_Amount__c,
-      |   Initial_Payment_Created_Date__c,
-      |   Last_Attempt_Date__c,
-      |   Cut_Off_Date__c
+      |SELECT 
+      |  Id,
+      |  Contact__r.IdentityID__c,
+      |  SF_Subscription__r.Product_Name__c,
+      |  SF_Subscription__r.Cancellation_Request_Date__c,
+      |  PF_Comms_Status__c, 
+      |  PF_Comms_Last_Stage_Processed__c, 
+      |  PF_Comms_Number_of_Attempts__c,
+      |  Currency__c,
+      |  Invoice_Total_Amount__c,
+      |  Initial_Payment_Created_Date__c,
+      |  Last_Attempt_Date__c,
+      |  Cut_Off_Date__c
       |FROM Payment_Failure__c
-      |WHERE PF_Comms_Status__c In ('Ready to process entry', 'Ready to process exit')
+      |WHERE PF_Comms_Status__c
+      |IN (
+      |  'Ready to send entry event',
+      |  'Ready to send recovery event',
+      |  'Ready to send voluntary cancel event',
+      |  'Ready to send auto cancel event'
+      |)
       |LIMIT 200""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
@@ -139,10 +144,10 @@ object SalesforceConnector {
       .parse(url)
       .newBuilder()
       .addQueryParameter("q", query)
-      .build();
+      .build()
 
     val request: Request = new Request.Builder()
-      .header("Authorization", s"Bearer ${bearerToken}")
+      .header("Authorization", s"Bearer $bearerToken")
       .url(urlWithParam)
       .get()
       .build()
@@ -164,7 +169,7 @@ object SalesforceConnector {
       logger: LambdaLogger
   )(url: String, bearerToken: String, body: String): Either[Throwable, Response] = {
     val request: Request = new Request.Builder()
-      .header("Authorization", s"Bearer ${bearerToken}")
+      .header("Authorization", s"Bearer $bearerToken")
       .url(url)
       .patch(RequestBody.create(body, JSON))
       .build()
@@ -199,10 +204,10 @@ object SalesforceConnector {
         if (response.isSuccessful) {
           decode[T](body)
             .left.map(decodeError =>
-              SalesforceResponseFailure(s"Failed to decode successful response:$decodeError. Body to decode ${body}")
+              SalesforceResponseFailure(s"Failed to decode successful response:$decodeError. Body to decode $body")
             )
         } else {
-          Left(SalesforceResponseFailure(s"The request to Salesforce was unsuccessful: ${response.code} - ${body}"))
+          Left(SalesforceResponseFailure(s"The request to Salesforce was unsuccessful: ${response.code} - $body"))
         }
       })
   }
