@@ -52,21 +52,21 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
           CustomEvent(
             external_id = "b1",
             app_id = "z1",
-            name = "payment_recovery",
+            name = "pf_recovery",
             time = "2021-10-26T00:00:00Z",
             properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
           ),
           CustomEvent(
             external_id = "b2",
             app_id = "z1",
-            name = "cancel_voluntary",
+            name = "pf_cancel_voluntary",
             time = "2021-10-25T10:15:01Z",
             properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
           ),
           CustomEvent(
             external_id = "b3",
             app_id = "z1",
-            name = "cancel_auto",
+            name = "pf_cancel_auto",
             time = "2021-10-27T00:00:00Z",
             properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
           )
