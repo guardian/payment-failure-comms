@@ -10,23 +10,23 @@ object Log {
 
   private sealed trait LogLevel { def name: String }
   private object LogLevel {
-    final case object Info extends LogLevel {
+    case object Info extends LogLevel {
       val name = "INFO"
     }
-    final case object Error extends LogLevel {
+    case object Error extends LogLevel {
       val name = "ERROR"
     }
   }
 
   sealed trait Service { def name: String }
   object Service {
-    final case object Salesforce extends Service {
+    case object Salesforce extends Service {
       val name = "Salesforce"
     }
-    final case object Braze extends Service {
+    case object Braze extends Service {
       val name = "Braze"
     }
-    final case object Idapi extends Service {
+    case object Idapi extends Service {
       val name = "Idapi"
     }
   }
