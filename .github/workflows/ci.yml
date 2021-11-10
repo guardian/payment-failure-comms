@@ -42,4 +42,6 @@ jobs:
         run: >
           sbt
           clean
+          scalafmtCheckAll
+          scalafmtSbtCheck
           riffRaffUpload
