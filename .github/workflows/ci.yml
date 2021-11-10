@@ -10,6 +10,8 @@ on:
 jobs:
   CI:
 
+    if: github.actor != 'scala-steward'
+
     runs-on: ubuntu-latest
 
     # Required by actions-assume-aws-role
