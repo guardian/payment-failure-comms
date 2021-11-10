@@ -39,5 +39,5 @@ jobs:
       - name: Run SBT tasks
         run: >
           sbt
-          clean
+          scalafmtCheckAll
           riffRaffUpload
