@@ -93,6 +93,6 @@ object Log {
       )
     )
 
-  def completion(logger: LambdaLogger)(): Unit =
+  def completion(logger: LambdaLogger): Unit =
     info(logger)(InfoMessage(event = "Completion"))
 }

@@ -32,8 +32,10 @@ object Handler {
       )
       _ <- sfConnector.updateRecords(updateRecordsRequest)
     } yield ()) match {
-      case Left(failure) => Log.failure(logger)(failure)
-      case Right(_)      => Log.completion(logger)()
+      case Left(failure) =>
+        Log.failure(logger)(failure)
+        throw new RuntimeException(failure.details)
+      case Right(_) => Log.completion(logger)
     }
   }
 
