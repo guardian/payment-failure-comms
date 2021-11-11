@@ -1,3 +1,5 @@
+![CI workflow status](https://github.com/guardian/payment-failure-comms/actions/workflows/ci.yml/badge.svg)
+
 # Payment Failure Comms
 
 This repo contains a lambda that emits payment failure related Custom Events to Braze. It fetches data from Salesforce to determine users entering or exiting payment failure and places that information into Braze using Custom Events.
