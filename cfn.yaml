@@ -123,12 +123,10 @@ Resources:
 
   FailureAlarm:
     Type: AWS::CloudWatch::Alarm
-#    TODO reinstate
-#    Condition: IsProd
+    Condition: IsProd
     DependsOn: PaymentFailureCommsLambda
     Properties:
-#      AlarmName: "URGENT 9-5 - PROD: Failed to send payment-failure events to Braze"
-      AlarmName: "Testing PF alarm"
+      AlarmName: "URGENT 9-5 - PROD: Failed to send payment-failure events to Braze"
       AlarmDescription: >
         IMPACT: If this goes unaddressed, at least one payment-failure event won't be communicated to the customer.
         For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.

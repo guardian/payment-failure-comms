@@ -35,10 +35,7 @@ object Handler {
       case Left(failure) =>
         Log.failure(logger)(failure)
         throw new RuntimeException(failure.details)
-      case Right(_) =>
-        Log.completion(logger)
-//        TODO remove
-        throw new RuntimeException("Testing 1 2 3")
+      case Right(_) => Log.completion(logger)
     }
   }
 
