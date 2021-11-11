@@ -123,7 +123,8 @@ Resources:
 
   FailureAlarm:
     Type: AWS::CloudWatch::Alarm
-    Condition: IsProd
+#    TODO reinstate
+#    Condition: IsProd
     DependsOn: PaymentFailureCommsLambda
     Properties:
       AlarmName: "URGENT 9-5 - PROD: Failed to send payment-failure events to Braze"
