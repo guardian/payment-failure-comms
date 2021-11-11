@@ -16,3 +16,12 @@ Check out the ADR docs [here](https://drive.google.com/drive/folders/1UZ7_HDLACK
 
 This repo is deployed by a [Github CI workflow](https://github.com/guardian/payment-failure-comms/blob/main/.github/workflows/ci.yml) and Riffraff.  
 There is a [paused build](https://teamcity.gutools.co.uk/buildConfiguration/memsub_MembershipAdmin_Build?branch=%3Cdefault%3E&buildTypeTab=overview&mode=builds) in Teamcity, which is due to be deleted on 22 Nov 2021 if there are no problems before then.
+
+## Alarms
+
+An alarm is set off when the lambda fails.  
+To resolve the failure:
+
+1. Look for errors in the Cloudwatch logs attached to the lambda.
+
+This will be updated as we accumulate reasons for the alarm going off.
