@@ -17,10 +17,11 @@ case class IdapiConfig(instanceUrl: String, bearerToken: String)
 case class BrazeConfig(instanceUrl: String, bearerToken: String, zuoraAppId: String)
 
 object Config {
-  def apply(): Either[Failure, Config] = {
-    def getFromEnv(prop: String): Either[ConfigFailure, String] =
-      sys.env.get(prop).toRight(ConfigFailure(s"Could not obtain $prop"))
 
+  def getFromEnv(prop: String): Either[ConfigFailure, String] =
+    sys.env.get(prop).toRight(ConfigFailure(s"Could not obtain $prop"))
+
+  def apply(): Either[Failure, Config] = {
     for {
       salesforceInstanceUrl <- getFromEnv("salesforceInstanceUrl")
       salesforceApiVersion <- getFromEnv("salesforceApiVersion")

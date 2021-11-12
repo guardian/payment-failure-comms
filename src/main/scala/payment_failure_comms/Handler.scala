@@ -48,10 +48,6 @@ object Handler {
       }
     )
 
-  final def main(args: Array[String]): Unit = {
-    program(new LambdaLogger {
-      def log(message: String): Unit = println(message)
-      def log(message: Array[Byte]): Unit = println(message)
-    })
-  }
+  final def main(args: Array[String]): Unit =
+    program(ConsoleLogger())
 }

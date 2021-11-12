@@ -96,3 +96,17 @@ object Log {
   def completion(logger: LambdaLogger)(): Unit =
     info(logger)(InfoMessage(event = "Completion"))
 }
+
+object ConsoleLogger {
+  def apply(): LambdaLogger = new LambdaLogger {
+    def log(message: String): Unit = println(message)
+    def log(message: Array[Byte]): Unit = println(message)
+  }
+}
+
+object NoOpLogger {
+  def apply(): LambdaLogger = new LambdaLogger {
+    def log(message: String): Unit = ()
+    def log(message: Array[Byte]): Unit = ()
+  }
+}
