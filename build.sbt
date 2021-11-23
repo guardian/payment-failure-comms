@@ -22,7 +22,7 @@ lazy val root = (project in file("."))
         "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
-        "com.squareup.okhttp3" % "okhttp" % "4.9.2",
+        "com.squareup.okhttp3" % "okhttp" % "4.9.3",
         "org.scalatest" %% "scalatest" % "3.2.10" % Test
       )
   )
