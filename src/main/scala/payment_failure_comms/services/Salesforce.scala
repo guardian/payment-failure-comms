@@ -5,23 +5,21 @@ import io.circe.generic.auto._
 import io.circe.parser.decode
 import okhttp3._
 import payment_failure_comms.Log
-import payment_failure_comms.models.{
-  PaymentFailureRecord,
-  SFPaymentFailureRecordWrapper,
-  SalesforceAuth,
-  SalesforceRequestFailure
-}
-import zio.{Console, Has, IO, URIO, URLayer, ZIO, ZIOAppArgs, ZIOAppDefault}
-
-import scala.util.Try
+import payment_failure_comms.models._
+import zio.{Console, Has, IO, ZIO, ZIOAppArgs, ZIOAppDefault, ZLayer}
 
 trait Salesforce {
   def fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]]
+  def updatePaymentFailureRecords(request: PaymentFailureRecordUpdateRequest): IO[SalesforceResponseFailure, Unit]
 }
 
 object Salesforce {
   val fetchPaymentFailureRecords: ZIO[Has[Salesforce], SalesforceRequestFailure, Seq[PaymentFailureRecord]] =
     ZIO.serviceWith(_.fetchPaymentFailureRecords)
+
+  def updatePaymentFailureRecords(
+      request: PaymentFailureRecordUpdateRequest
+  ): ZIO[Has[Salesforce], SalesforceResponseFailure, Unit] = ZIO.serviceWith(_.updatePaymentFailureRecords(request))
 }
 
 object SalesforceLive {
@@ -29,13 +27,12 @@ object SalesforceLive {
   private val urlEncoded = MediaType.parse("application/x-www-form-urlencoded")
   private val http = new OkHttpClient()
 
-  private val auth: ZIO[Configuration, SalesforceRequestFailure, SalesforceAuth] = {
+  private val auth: ZIO[Has[Configuration], SalesforceRequestFailure, SalesforceAuth] = {
     for {
       configService <- ZIO.service[Configuration]
       config <- configService.get
       sfConfig = config.salesforce
-    } yield {
-      val authDetails = Seq(
+      authDetails = Seq(
         "grant_type" -> "password",
         "client_id" -> sfConfig.clientId,
         "client_secret" -> sfConfig.clientSecret,
@@ -44,27 +41,25 @@ object SalesforceLive {
       )
         .map(_.productIterator.mkString("="))
         .mkString("&")
-
-      val body = RequestBody.create(authDetails, urlEncoded)
-
-      val request = new Request.Builder()
+      body = RequestBody.create(authDetails, urlEncoded)
+      request = new Request.Builder()
         .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
         .post(body)
         .build()
-
-      Try(
-        http.newCall(request).execute()
-      ).toEither
-    }
+      x <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
+      body = x.body.string
+      d <- ZIO.fromEither(decode[SalesforceAuth](body)).mapError(e => SalesforceRequestFailure(e.getMessage))
+    } yield d
   }
 
-  private val effect: URIO[Has[Logging] with Has[Configuration], Salesforce] =
+  private val effect: ZIO[Has[Logging] with Has[Configuration], Failure, Salesforce] =
     for {
       logging <- ZIO.service[Logging]
       configService <- ZIO.service[Configuration]
       config <- configService.get
       a <- auth
     } yield new Salesforce {
+
       val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
         val url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
         val urlWithParam = HttpUrl
@@ -95,46 +90,18 @@ object SalesforceLive {
         } yield t.records
       }
 
-case class SalesforceLive(logging: Logging, configuration: Configuration) extends Salesforce {
+      def updatePaymentFailureRecords(request: PaymentFailureRecordUpdateRequest): IO[SalesforceResponseFailure, Unit] =
+        // TODO
+        IO.succeed(())
+    }
 
-  private val http = new OkHttpClient()
-
-      private val auth: IO[SalesforceRequestFailure, SalesforceAuth] = ???
-
-  val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
-    for {
-      config <- configuration.get
-      a <- auth
-      url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
-      urlWithParam = HttpUrl
-        .parse(url)
-        .newBuilder()
-        .addQueryParameter("q", Query.fetchPaymentFailures)
-        .build()
-      request = new Request.Builder()
-        .header("Authorization", s"Bearer ${a.access_token}")
-        .url(urlWithParam)
-        .get()
-        .build()
-      _ <- logging.logRequest(
-        service = Log.Service.Salesforce,
-        description = Some("Read outstanding payment failure records"),
-        url = request.url().toString,
-        method = request.method(),
-        query = Some(Query.fetchPaymentFailures)
-      )
-      response <- ZIO.attempt(http.newCall(request).execute()).mapError(e => SalesforceRequestFailure(e.getMessage))
-      body = response.body().string()
-      t <- ZIO
-        .fromEither(decode[SFPaymentFailureRecordWrapper](body)).mapError(e => SalesforceRequestFailure(e.getMessage))
-    } yield t.records
-  }
+  val layer: ZLayer[Has[Logging] with Has[Configuration], Failure, Has[Salesforce]] = effect.toLayer
 
   object Query {
 
-        // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
-        val fetchPaymentFailures =
-          """
+    // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
+    val fetchPaymentFailures: String =
+      """
             |SELECT Id,
             |   Status__c,
             |   Contact__r.IdentityID__c,
@@ -146,8 +113,7 @@ case class SalesforceLive(logging: Logging, configuration: Configuration) extend
             |FROM Payment_Failure__c
             |WHERE PF_Comms_Status__c In ('Ready to process exit','Ready to process entry')
             |LIMIT 200""".stripMargin
-      }
-    }
+  }
 }
 
 object SalesforceClient extends ZIOAppDefault {
