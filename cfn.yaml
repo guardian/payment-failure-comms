@@ -21,17 +21,17 @@ Mappings:
   StageMap:
     PROD:
       Schedule: 'rate(30 minutes)'
-      SalesforceStage: DEV
-      SalesforceUsername: pfCommsAPIUser
-      SalesforceAppName: AwsConnectorSandbox
+      SalesforceStage: PROD
+      SalesforceUserName: pfCommsAPIUser
+      SalesforceAppName: PfComms
       IdapiInstanceUrl: idapi.theguardian.com
       IdapiStage: PROD
       BrazeInstanceUrl: rest.fra-01.braze.eu
-      BrazeAppGroup: DEV
+      BrazeAppGroup: LIVE
     CODE:
       Schedule: 'rate(365 days)'
-      SalesforceStage: DEV
-      SalesforceUsername: pfCommsAPIUser
+      SalesforceStage: UAT
+      SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
@@ -40,7 +40,7 @@ Mappings:
     DEV:
       Schedule: 'rate(365 days)'
       SalesforceStage: DEV
-      SalesforceUsername: pfCommsAPIUser
+      SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
       IdapiInstanceUrl: idapi.code.dev-theguardian.com
       IdapiStage: CODE
@@ -85,33 +85,33 @@ Resources:
             - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/ConnectedApp/${SalesforceAppName}:SecretString:clientSecret}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
               SalesforceAppName: !FindInMap [ StageMap, !Ref Stage, SalesforceAppName ]
-          salesforceUsername:
+          salesforceUserName:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfUsername}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUserName}:SecretString:userName}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
+              SalesforceUserName: !FindInMap [ StageMap, !Ref Stage, SalesforceUserName ]
           salesforcePassword:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfPassword}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUserName}:SecretString:password}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
+              SalesforceUserName: !FindInMap [ StageMap, !Ref Stage, SalesforceUserName ]
           salesforceToken:
             !Sub
-            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUsername}:SecretString:sfToken}}'
+            - '{{resolve:secretsmanager:${SalesforceStage}/Salesforce/User/${SalesforceUserName}:SecretString:token}}'
             - SalesforceStage: !FindInMap [ StageMap, !Ref Stage, SalesforceStage ]
-              SalesforceUsername: !FindInMap [ StageMap, !Ref Stage, SalesforceUsername ]
+              SalesforceUserName: !FindInMap [ StageMap, !Ref Stage, SalesforceUserName ]
           idapiInstanceUrl: !FindInMap [ StageMap, !Ref Stage, IdapiInstanceUrl ]
           idapiBearerToken: !Sub
-            - '{{resolve:secretsmanager:IDAPI/${IdapiStage}/${AppName}:SecretString:bearerToken}}'
+            - '{{resolve:secretsmanager:${IdapiStage}/Identity/${AppName}:SecretString:bearerToken}}'
             - IdapiStage: !FindInMap [ StageMap, !Ref Stage, IdapiStage ]
           brazeInstanceUrl: !FindInMap [ StageMap, !Ref Stage, BrazeInstanceUrl ]
-          brazeBearerToken:
+          brazeApiKey:
             !Sub
-            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:bearerToken}}'
+            - '{{resolve:secretsmanager:${BrazeAppGroup}/Braze/${AppName}:SecretString:apiKey}}'
             - BrazeAppGroup: !FindInMap [ StageMap, !Ref Stage, BrazeAppGroup ]
-          zuoraAppIdForBraze:
+          appIdForBraze:
             !Sub
-            - '{{resolve:secretsmanager:Braze/${BrazeAppGroup}/${AppName}:SecretString:zuoraAppId}}'
+            - '{{resolve:secretsmanager:${BrazeAppGroup}/Braze/${AppName}:SecretString:appId}}'
             - BrazeAppGroup: !FindInMap [ StageMap, !Ref Stage, BrazeAppGroup ]
       Events:
         ScheduledRun:

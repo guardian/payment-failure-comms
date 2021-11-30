@@ -49,9 +49,9 @@ object TestEventLoader extends App {
   private val maybeBrazeConfig =
     for {
       brazeInstanceUrl <- getFromEnv("brazeInstanceUrl")
-      brazeBearerToken <- getFromEnv("brazeBearerToken")
-      brazeZuoraAppId <- getFromEnv("zuoraAppIdForBraze")
-    } yield BrazeConfig(brazeInstanceUrl, brazeBearerToken, brazeZuoraAppId)
+      brazeApiKey <- getFromEnv("brazeApiKey")
+      brazeZuoraAppId <- getFromEnv("appIdForBraze")
+    } yield BrazeConfig(brazeInstanceUrl, brazeApiKey, brazeZuoraAppId)
 
   private def createAccount(config: BrazeConfig) =
     new Request.Builder()

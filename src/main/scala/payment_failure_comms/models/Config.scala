@@ -27,12 +27,12 @@ object Config {
       salesforceApiVersion <- getFromEnv("salesforceApiVersion")
       salesforceClientId <- getFromEnv("salesforceClientId")
       salesforceClientSecret <- getFromEnv("salesforceClientSecret")
-      salesforceUsername <- getFromEnv("salesforceUsername")
+      salesforceUsername <- getFromEnv("salesforceUserName")
       salesforcePassword <- getFromEnv("salesforcePassword")
       salesforceToken <- getFromEnv("salesforceToken")
       brazeInstanceUrl <- getFromEnv("brazeInstanceUrl")
-      brazeBearerToken <- getFromEnv("brazeBearerToken")
-      brazeZuoraAppId <- getFromEnv("zuoraAppIdForBraze")
+      brazeApiKey <- getFromEnv("brazeApiKey")
+      appIdForBraze <- getFromEnv("appIdForBraze")
       idapiInstanceUrl <- getFromEnv("idapiInstanceUrl")
       idapiBearerToken <- getFromEnv("idapiBearerToken")
     } yield Config(
@@ -46,7 +46,7 @@ object Config {
         salesforceToken
       ),
       IdapiConfig(idapiInstanceUrl, idapiBearerToken),
-      BrazeConfig(brazeInstanceUrl, brazeBearerToken, brazeZuoraAppId)
+      BrazeConfig(brazeInstanceUrl, brazeApiKey, appIdForBraze)
     )
   }
 }
