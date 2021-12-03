@@ -23,6 +23,16 @@ object ConfigurationLive {
   val layer: Layer[Failure, Has[Configuration]] = effect.toLayer
 }
 
+/*
+case class MyConfig(ldap: String, port: Int, dburl: String)
+
+val myConfig: ConfigDescriptor[MyConfig] =
+  (string("LDAP") |@| int("PORT") |@| string("DB_URL"))(MyConfig.apply, MyConfig.unapply)
+
+val result: Layer[ReadError[String], Has[MyConfig]] = System.live >>> ZConfig.fromSystemEnv(myConfig)
+
+zio.Runtime.default.unsafeRun(result.launch)
+ */
 object Client extends ZIOAppDefault {
   def run: ZIO[zio.ZEnv with Has[ZIOAppArgs], Any, Any] = (for {
     config <- ZIO.serviceWith[Configuration](_.get)

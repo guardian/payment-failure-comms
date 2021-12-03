@@ -61,7 +61,7 @@ object SalesforceLive {
     } yield new Salesforce {
 
       val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
-        val url = s"${config.salesforce.instanceUrl}/services/data/${config.salesforce.apiVersion}/query/"
+        val url = s"${a.instance_url}/services/data/${config.salesforce.apiVersion}/query/"
         val urlWithParam = HttpUrl
           .parse(url)
           .newBuilder()
