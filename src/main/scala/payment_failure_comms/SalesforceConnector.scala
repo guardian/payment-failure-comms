@@ -70,8 +70,8 @@ object SalesforceConnector {
       |  'Ready to send recovery event',
       |  'Ready to send voluntary cancel event',
       |  'Ready to send auto cancel event'
-      |) and Contact__r.IdentityID__c = null
-      |LIMIT 3""".stripMargin
+      |)
+      |LIMIT 100""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
       responseToQueryRequest(
