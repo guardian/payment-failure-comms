@@ -6,7 +6,7 @@ import java.time.ZonedDateTime
  * Braze response model for /users/export/id endpoint, serialized as Json.
  */
 case class BrazeUserResponse(users: Seq[User])
-case class User(external_id: String, custom_events: Seq[UserCustomEvent])
+case class User(external_id: String, custom_events: Option[Seq[UserCustomEvent]])
 case class UserCustomEvent(name: String, first: ZonedDateTime, last: ZonedDateTime, count: Int)
 
 /*
