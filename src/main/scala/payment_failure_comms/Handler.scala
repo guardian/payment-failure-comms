@@ -18,7 +18,7 @@ object Handler {
       sfConnector <- SalesforceConnector(config.salesforce, logger)
 
       records <- sfConnector.getRecordsToProcess()
-      augmentedRecords = augmentRecordsWithBrazeId(config.idapi, logger)(records)
+      augmentedRecords = augmentRecordsWithBrazeId(findBrazeId(config.idapi, logger))(records)
 
       currentEventsRequest = BrazeUserRequest.fromPaymentFailureRecords(augmentedRecords.withBrazeId)
       currentEventsResponse <- BrazeConnector.fetchCustomEvents(config.braze, logger)(currentEventsRequest)
@@ -39,13 +39,30 @@ object Handler {
     }
   }
 
-  private def augmentRecordsWithBrazeId(idapiConfig: IdapiConfig, logger: LambdaLogger)(
+  /*
+   * We find the Braze ID by looking it up in the IDAPI if the contact record has an Identity ID.
+   * Otherwise, if the contact doesn't have an Identity ID, we fall back to using the contact ID as Braze ID.
+   * This is an established pattern so there should be matching accounts in Braze with these IDs.
+   */
+  private def findBrazeId(idapiConfig: IdapiConfig, logger: LambdaLogger)(
+      record: PaymentFailureRecord
+  ): Option[String] =
+    record.Contact__r.IdentityID__c match {
+      case Some(identityId) =>
+        IdapiConnector.getBrazeId(idapiConfig, logger)(identityId) match {
+          case Left(_)        => None
+          case Right(brazeId) => Some(brazeId)
+        }
+      case None => Some(record.Contact__c)
+    }
+
+  private def augmentRecordsWithBrazeId(findBrazeId: PaymentFailureRecord => Option[String])(
       records: Seq[PaymentFailureRecord]
   ): PartitionedRecords =
     records.foldLeft(PartitionedRecords(Nil, Nil))((acc, record) =>
-      IdapiConnector.getBrazeId(idapiConfig, logger)(record.Contact__r.IdentityID__c) match {
-        case Left(_) => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
-        case Right(brazeId) =>
+      findBrazeId(record) match {
+        case None => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
+        case Some(brazeId) =>
           acc.copy(withBrazeId = acc.withBrazeId :+ PaymentFailureRecordWithBrazeId(record, brazeId))
       }
     )
