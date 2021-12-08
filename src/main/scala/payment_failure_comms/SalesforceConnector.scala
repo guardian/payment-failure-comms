@@ -70,7 +70,7 @@ object SalesforceConnector {
       |  'Ready to send voluntary cancel event',
       |  'Ready to send auto cancel event'
       |)
-      |LIMIT 10""".stripMargin
+      |LIMIT 100""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
       responseToQueryRequest(
