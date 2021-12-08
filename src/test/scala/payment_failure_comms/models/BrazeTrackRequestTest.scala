@@ -11,7 +11,8 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
     PaymentFailureRecordWithBrazeId(
       record = PaymentFailureRecord(
         Id = id.toString,
-        Contact__r = SFContact(IdentityID__c = "i1"),
+        Contact__c = "c7",
+        Contact__r = SFContact(IdentityID__c = Some("i1")),
         SF_Subscription__r = SFSubscription(
           Product_Name__c = "prod1",
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))

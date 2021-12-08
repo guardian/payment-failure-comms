@@ -4,6 +4,7 @@ import java.time.{LocalDate, OffsetDateTime}
 
 case class PaymentFailureRecord(
     Id: String,
+    Contact__c: String,
     Contact__r: SFContact,
     SF_Subscription__r: SFSubscription,
     PF_Comms_Status__c: String,
@@ -16,7 +17,7 @@ case class PaymentFailureRecord(
     Cut_Off_Date__c: LocalDate
 )
 
-case class SFContact(IdentityID__c: String)
+case class SFContact(IdentityID__c: Option[String])
 
 case class SFSubscription(
     Product_Name__c: String,
