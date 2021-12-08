@@ -18,15 +18,23 @@ object BrazeTrackRequest {
     "Ready to send auto cancel event" -> "pf_cancel_auto"
   )
 
-  private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
-    events.filterNot { event =>
-      val eventTime = ZonedDateTime.parse(event.time)
-      eventsAlreadyWritten.users.exists { user =>
-        user.external_id == event.external_id &&
-        user.custom_events.exists(_.name == event.name) &&
-        user.custom_events.exists(!_.last.isBefore(eventTime))
-      }
+  private def timeOf(event: CustomEvent) = ZonedDateTime.parse(event.time)
+
+  private def hasEventWithSameNameAndAtSameTimeOrLater(
+      existingUserEvents: Option[Seq[UserCustomEvent]]
+  )(event: CustomEvent) =
+    existingUserEvents.exists(
+      _.exists(existingEvent => existingEvent.name == event.name && !existingEvent.last.isBefore(timeOf(event)))
+    )
+
+  private def isAlreadyInBraze(eventsAlreadyWritten: BrazeUserResponse)(event: CustomEvent) =
+    eventsAlreadyWritten.users.exists { user =>
+      user.external_id == event.external_id &&
+      hasEventWithSameNameAndAtSameTimeOrLater(user.custom_events)(event)
     }
+
+  private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
+    events.filterNot(isAlreadyInBraze(eventsAlreadyWritten))
 
   def apply(
       records: Seq[PaymentFailureRecordWithBrazeId],

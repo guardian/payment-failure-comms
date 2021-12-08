@@ -107,12 +107,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       Seq(
         User(
           external_id = "ei2",
-          custom_events = Seq(
-            UserCustomEvent(
-              name = "payment_recovery",
-              first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
-              last = ZonedDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneId.of("UTC")),
-              count = 3
+          custom_events = Some(
+            Seq(
+              UserCustomEvent(
+                name = "payment_recovery",
+                first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
+                last = ZonedDateTime.of(2020, 2, 3, 4, 5, 6, 0, ZoneId.of("UTC")),
+                count = 3
+              )
             )
           )
         )
@@ -143,12 +145,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       Seq(
         User(
           external_id = "ei1",
-          custom_events = Seq(
-            UserCustomEvent(
-              name = "payment_failure",
-              first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
-              last = ZonedDateTime.of(2021, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
-              count = 3
+          custom_events = Some(
+            Seq(
+              UserCustomEvent(
+                name = "payment_failure",
+                first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
+                last = ZonedDateTime.of(2021, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
+                count = 3
+              )
             )
           )
         )
@@ -171,12 +175,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       Seq(
         User(
           external_id = "ei1",
-          custom_events = Seq(
-            UserCustomEvent(
-              name = "payment_recovery",
-              first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
-              last = ZonedDateTime.of(2021, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
-              count = 3
+          custom_events = Some(
+            Seq(
+              UserCustomEvent(
+                name = "payment_recovery",
+                first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
+                last = ZonedDateTime.of(2021, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
+                count = 3
+              )
             )
           )
         )
@@ -207,12 +213,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       Seq(
         User(
           external_id = "ei1",
-          custom_events = Seq(
-            UserCustomEvent(
-              name = "payment_failure",
-              first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
-              last = ZonedDateTime.of(2020, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
-              count = 3
+          custom_events = Some(
+            Seq(
+              UserCustomEvent(
+                name = "payment_failure",
+                first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
+                last = ZonedDateTime.of(2020, 10, 26, 11, 15, 27, 0, ZoneId.of("UTC")),
+                count = 3
+              )
             )
           )
         )
@@ -243,12 +251,14 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       Seq(
         User(
           external_id = "ei1",
-          custom_events = Seq(
-            UserCustomEvent(
-              name = "payment_failure",
-              first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
-              last = ZonedDateTime.of(2021, 10, 27, 11, 15, 27, 0, ZoneId.of("UTC")),
-              count = 3
+          custom_events = Some(
+            Seq(
+              UserCustomEvent(
+                name = "payment_failure",
+                first = ZonedDateTime.of(2019, 10, 10, 4, 6, 12, 0, ZoneId.of("UTC")),
+                last = ZonedDateTime.of(2021, 10, 27, 11, 15, 27, 0, ZoneId.of("UTC")),
+                count = 3
+              )
             )
           )
         )
