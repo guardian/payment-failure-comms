@@ -51,6 +51,7 @@ object SalesforceConnector {
       """
       |SELECT 
       |  Id,
+      |  Contact__c,
       |  Contact__r.IdentityID__c,
       |  SF_Subscription__r.Product_Name__c,
       |  SF_Subscription__r.Cancellation_Request_Date__c,
@@ -69,8 +70,8 @@ object SalesforceConnector {
       |  'Ready to send recovery event',
       |  'Ready to send voluntary cancel event',
       |  'Ready to send auto cancel event'
-      |)
-      |LIMIT 100""".stripMargin
+      |) and Contact__r.IdentityID__c = null
+      |LIMIT 3""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
       responseToQueryRequest(
