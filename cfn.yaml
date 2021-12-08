@@ -20,7 +20,7 @@ Conditions:
 Mappings:
   StageMap:
     PROD:
-      Schedule: 'rate(30 minutes)'
+      Schedule: 'rate(20 minutes)'
       SalesforceStage: PROD
       SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: PfComms
@@ -117,9 +117,12 @@ Resources:
         ScheduledRun:
           Type: Schedule
           Properties:
-            Schedule: !FindInMap [ StageMap, !Ref Stage, Schedule ]
             Description: Send payment failure communications
-            Enabled: False
+            Schedule: !FindInMap [ StageMap, !Ref Stage, Schedule ]
+            RetryPolicy:
+              # As process runs every 20 mins anyway, there's no point in retrying on failure
+              MaximumRetryAttempts: 0
+            Enabled: True
 
   FailureAlarm:
     Type: AWS::CloudWatch::Alarm
