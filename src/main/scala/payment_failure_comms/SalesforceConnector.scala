@@ -46,7 +46,11 @@ object SalesforceConnector {
       apiVersion: String,
       logger: LambdaLogger
   ): Either[Failure, Seq[PaymentFailureRecord]] = {
-    // Query limited to 200 records to avoid Salesforce's governor limits on number of requests per response
+    /*
+     * Query limited to 50 records to avoid hitting the limit for concurrent updates
+     * using the Braze user track endpoint.
+     * See https://www.braze.com/docs/api/errors/#fatal-errors
+     */
     val query =
       """
       |SELECT 
@@ -71,7 +75,7 @@ object SalesforceConnector {
       |  'Ready to send voluntary cancel event',
       |  'Ready to send auto cancel event'
       |)
-      |LIMIT 100""".stripMargin
+      |LIMIT 50""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
       responseToQueryRequest(
