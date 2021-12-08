@@ -20,7 +20,6 @@ Conditions:
 Mappings:
   StageMap:
     PROD:
-      Schedule: 'rate(30 minutes)'
       SalesforceStage: PROD
       SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: PfComms
@@ -29,7 +28,6 @@ Mappings:
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: LIVE
     CODE:
-      Schedule: 'rate(365 days)'
       SalesforceStage: UAT
       SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
@@ -38,7 +36,6 @@ Mappings:
       BrazeInstanceUrl: rest.fra-01.braze.eu
       BrazeAppGroup: DEV
     DEV:
-      Schedule: 'rate(365 days)'
       SalesforceStage: DEV
       SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: AwsConnectorSandbox
@@ -116,10 +113,14 @@ Resources:
       Events:
         ScheduledRun:
           Type: Schedule
+          Condition: IsProd
           Properties:
-            Schedule: !FindInMap [ StageMap, !Ref Stage, Schedule ]
             Description: Send payment failure communications
-            Enabled: False
+            Schedule: rate(5 minutes)
+            RetryPolicy:
+              # As process runs every 20 mins anyway, there's no point in retrying on failure
+              MaximumRetryAttempts: 0
+            Enabled: True
 
   FailureAlarm:
     Type: AWS::CloudWatch::Alarm
