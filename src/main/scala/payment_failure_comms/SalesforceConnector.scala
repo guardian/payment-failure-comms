@@ -55,6 +55,7 @@ object SalesforceConnector {
       """
       |SELECT 
       |  Id,
+      |  Contact__c,
       |  Contact__r.IdentityID__c,
       |  SF_Subscription__r.Product_Name__c,
       |  SF_Subscription__r.Cancellation_Request_Date__c,
