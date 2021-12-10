@@ -11,8 +11,6 @@ import scala.util.Try
 
 object IdapiConnector {
 
-  private val http = new OkHttpClient()
-
   def getBrazeId(idapiConfig: IdapiConfig, logger: LambdaLogger)(IdentityId: String): Either[Failure, String] = {
     handleRequestResult[IdapiGetUserResponse](logger)(
       responseToGetRequest(logger)(
@@ -36,7 +34,7 @@ object IdapiConnector {
     )
 
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 

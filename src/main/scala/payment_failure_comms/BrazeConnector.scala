@@ -12,7 +12,6 @@ import scala.util.Try
 object BrazeConnector {
 
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
-  private val http = new OkHttpClient()
 
   def fetchCustomEvents(brazeConfig: BrazeConfig, logger: LambdaLogger)(
       payload: BrazeUserRequest
@@ -81,7 +80,7 @@ object BrazeConnector {
     )
 
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 
