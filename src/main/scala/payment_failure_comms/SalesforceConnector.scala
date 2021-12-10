@@ -29,16 +29,14 @@ object SalesforceConnector {
   implicit val salesforceDateTimeDecoder: Decoder[OffsetDateTime] =
     Decoder.decodeOffsetDateTimeWithFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxx"))
 
-  def apply(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceConnector] = {
+  def apply(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceConnector] =
     auth(sfConfig, logger)
       .map(new SalesforceConnector(_, sfConfig.apiVersion, logger))
-  }
 
-  def auth(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceAuth] = {
+  def auth(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Failure, SalesforceAuth] =
     handleRequestResult[SalesforceAuth](logger)(
       authRequest(sfConfig, logger)
     )
-  }
 
   def getRecordsToProcess(
       authDetails: SalesforceAuth,
@@ -92,7 +90,7 @@ object SalesforceConnector {
       apiVersion: String,
       request: PaymentFailureRecordUpdateRequest,
       logger: LambdaLogger
-  ): Either[Failure, SFCompositeResponse] = {
+  ): Either[Failure, SFCompositeResponse] =
     if (request.records.isEmpty)
       Right(SFCompositeResponse(Seq()))
     else
@@ -104,7 +102,15 @@ object SalesforceConnector {
         )
       )
         .map(SFCompositeResponse.apply)
-  }
+
+  private def logAuthRequest(logger: LambdaLogger, authDetails: String, request: Request): Unit =
+    Log.request(logger)(
+      service = Log.Service.Salesforce,
+      description = Some("Auth"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(authDetails)
+    )
 
   def authRequest(sfConfig: SalesforceConfig, logger: LambdaLogger): Either[Throwable, Response] = {
     val authDetails = Seq(
@@ -116,46 +122,18 @@ object SalesforceConnector {
     )
       .map(_.productIterator.mkString("="))
       .mkString("&")
-
     val body = RequestBody.create(authDetails, urlEncoded)
-
     val request = new Request.Builder()
       .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
       .post(body)
       .build()
-
-    Log.request(logger)(
-      service = Log.Service.Salesforce,
-      description = Some("Auth"),
-      url = request.url().toString,
-      method = request.method(),
-      body = Some(authDetails)
-    )
-
+    logAuthRequest(logger, authDetails, request)
     Try(
       HttpClient().newCall(request).execute()
     ).toEither
   }
 
-  def responseToQueryRequest(
-      url: String,
-      bearerToken: String,
-      query: String,
-      logger: LambdaLogger
-  ): Either[Throwable, Response] = {
-
-    val urlWithParam = HttpUrl
-      .parse(url)
-      .newBuilder()
-      .addQueryParameter("q", query)
-      .build()
-
-    val request: Request = new Request.Builder()
-      .header("Authorization", s"Bearer $bearerToken")
-      .url(urlWithParam)
-      .get()
-      .build()
-
+  private def logReadRequest(query: String, logger: LambdaLogger, request: Request): Unit =
     Log.request(logger)(
       service = Log.Service.Salesforce,
       description = Some("Read outstanding payment failure records"),
@@ -164,10 +142,36 @@ object SalesforceConnector {
       query = Some(query)
     )
 
+  def responseToQueryRequest(
+      url: String,
+      bearerToken: String,
+      query: String,
+      logger: LambdaLogger
+  ): Either[Throwable, Response] = {
+    val urlWithParam = HttpUrl
+      .parse(url)
+      .newBuilder()
+      .addQueryParameter("q", query)
+      .build()
+    val request: Request = new Request.Builder()
+      .header("Authorization", s"Bearer $bearerToken")
+      .url(urlWithParam)
+      .get()
+      .build()
+    logReadRequest(query, logger, request)
     Try(
       HttpClient().newCall(request).execute()
     ).toEither
   }
+
+  private def logWriteRequest(logger: LambdaLogger, body: String, request: Request): Unit =
+    Log.request(logger)(
+      service = Log.Service.Salesforce,
+      description = Some("Update payment failure records"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(body)
+    )
 
   def responseToCompositeRequest(
       logger: LambdaLogger
@@ -177,34 +181,27 @@ object SalesforceConnector {
       .url(url)
       .patch(RequestBody.create(body, JSON))
       .build()
-
-    Log.request(logger)(
-      service = Log.Service.Salesforce,
-      description = Some("Update payment failure records"),
-      url = request.url().toString,
-      method = request.method(),
-      body = Some(body)
-    )
-
+    logWriteRequest(logger, body, request)
     Try(
       HttpClient().newCall(request).execute()
     ).toEither
   }
 
-  def handleRequestResult[T: Decoder](logger: LambdaLogger)(result: Either[Throwable, Response]): Either[Failure, T] = {
+  private def logResponse(logger: LambdaLogger, response: Response, body: String): Unit =
+    Log.response(logger)(
+      service = Log.Service.Salesforce,
+      url = response.request().url().toString,
+      method = response.request().method(),
+      responseCode = response.code(),
+      body = Some(body)
+    )
+
+  def handleRequestResult[T: Decoder](logger: LambdaLogger)(result: Either[Throwable, Response]): Either[Failure, T] =
     result
       .left.map(i => SalesforceRequestFailure(s"Attempt to contact Salesforce failed with error: ${i.toString}"))
       .flatMap(response => {
         val body = response.body().string()
-
-        Log.response(logger)(
-          service = Log.Service.Salesforce,
-          url = response.request().url().toString,
-          method = response.request().method(),
-          responseCode = response.code(),
-          body = Some(body)
-        )
-
+        logResponse(logger, response, body)
         if (response.isSuccessful) {
           decode[T](body)
             .left.map(decodeError =>
@@ -214,6 +211,4 @@ object SalesforceConnector {
           Left(SalesforceResponseFailure(s"The request to Salesforce was unsuccessful: ${response.code} - $body"))
         }
       })
-  }
-
 }

@@ -13,6 +13,23 @@ object BrazeConnector {
 
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
 
+  private def logRequest(logger: LambdaLogger, body: String, request: Request): Unit =
+    Log.request(logger)(
+      service = Log.Service.Braze,
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(body)
+    )
+
+  private def logResponse(logger: LambdaLogger, response: Response, body: String): Unit =
+    Log.response(logger)(
+      service = Log.Service.Braze,
+      url = response.request().url().toString,
+      method = response.request().method(),
+      responseCode = response.code(),
+      body = Some(body)
+    )
+
   def fetchCustomEvents(brazeConfig: BrazeConfig, logger: LambdaLogger)(
       payload: BrazeUserRequest
   ): Either[Failure, BrazeUserResponse] = {
@@ -26,17 +43,8 @@ object BrazeConnector {
       )
         .left.map(ex => BrazeRequestFailure(s"Attempt to contact Braze failed with error: ${ex.toString}"))
         .flatMap(response => {
-
           val body = response.body().string()
-
-          Log.response(logger)(
-            service = Log.Service.Braze,
-            url = response.request().url().toString,
-            method = response.request().method(),
-            responseCode = response.code(),
-            body = Some(body)
-          )
-
+          logResponse(logger, response, body)
           if (response.isSuccessful) {
             decode[BrazeUserResponse](body)
               .left.map(decodeError =>
@@ -71,14 +79,7 @@ object BrazeConnector {
       .url(url)
       .post(RequestBody.create(body, JSON))
       .build()
-
-    Log.request(logger)(
-      service = Log.Service.Braze,
-      url = request.url().toString,
-      method = request.method(),
-      body = Some(body)
-    )
-
+    logRequest(logger, body, request)
     Try(
       HttpClient().newCall(request).execute()
     ).toEither
@@ -89,15 +90,7 @@ object BrazeConnector {
       .left.map(i => BrazeRequestFailure(s"Attempt to contact Braze failed with error: ${i.toString}"))
       .flatMap(response => {
         val body = response.body().string()
-
-        Log.response(logger)(
-          service = Log.Service.Braze,
-          url = response.request().url().toString,
-          method = response.request().method(),
-          responseCode = response.code(),
-          body = Some(body)
-        )
-
+        logResponse(logger, response, body)
         if (response.isSuccessful) {
           Right(())
         } else {
@@ -105,5 +98,4 @@ object BrazeConnector {
         }
       })
   }
-
 }
