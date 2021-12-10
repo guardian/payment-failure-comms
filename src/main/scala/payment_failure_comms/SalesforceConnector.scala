@@ -25,7 +25,6 @@ object SalesforceConnector {
 
   private val urlEncoded = MediaType.parse("application/x-www-form-urlencoded")
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
-  private val http = new OkHttpClient()
 
   implicit val salesforceDateTimeDecoder: Decoder[OffsetDateTime] =
     Decoder.decodeOffsetDateTimeWithFormatter(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxx"))
@@ -130,7 +129,7 @@ object SalesforceConnector {
       .build()
     logAuthRequest(logger, authDetails, request)
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 
@@ -161,7 +160,7 @@ object SalesforceConnector {
       .build()
     logReadRequest(query, logger, request)
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 
@@ -184,7 +183,7 @@ object SalesforceConnector {
       .build()
     logWriteRequest(logger, body, request)
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 

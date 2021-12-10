@@ -12,7 +12,6 @@ import scala.util.Try
 object BrazeConnector {
 
   private val JSON: MediaType = MediaType.get("application/json; charset=utf-8")
-  private val http = new OkHttpClient()
 
   private def logRequest(logger: LambdaLogger, body: String, request: Request): Unit =
     Log.request(logger)(
@@ -82,7 +81,7 @@ object BrazeConnector {
       .build()
     logRequest(logger, body, request)
     Try(
-      http.newCall(request).execute()
+      HttpClient().newCall(request).execute()
     ).toEither
   }
 
