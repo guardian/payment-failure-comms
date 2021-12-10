@@ -82,7 +82,7 @@ object BrazeConnector {
       .build()
     logRequest(logger, body, request)
     Try(
-      HttpClient().newCall(request).execute()
+      http.newCall(request).execute()
     ).toEither
   }
 
