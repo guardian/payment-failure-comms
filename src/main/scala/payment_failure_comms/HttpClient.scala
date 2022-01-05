@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit.SECONDS
 object HttpClient {
 
   private val client = new OkHttpClient.Builder()
-    .connectTimeout(30, SECONDS)
+    .connectTimeout(60, SECONDS)
     .readTimeout(30, SECONDS)
     .build()
 
