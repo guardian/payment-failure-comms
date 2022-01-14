@@ -8,7 +8,7 @@ object HttpClient {
 
   private val client = new OkHttpClient.Builder()
     .connectTimeout(60, SECONDS)
-    .readTimeout(30, SECONDS)
+    .readTimeout(60, SECONDS)
     .build()
 
   def apply(): OkHttpClient = client
