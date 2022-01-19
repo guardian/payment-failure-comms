@@ -47,6 +47,8 @@ object SalesforceConnector {
      * Query limited to 50 records to avoid hitting the limit for concurrent updates
      * using the Braze user track endpoint.
      * See https://www.braze.com/docs/api/errors/#fatal-errors
+     *
+     * Including Status_Helper__c field in query to improve its filtering efficiency and, therefore, performance.
      */
     val query =
       """
@@ -65,7 +67,14 @@ object SalesforceConnector {
       |  Last_Attempt_Date__c,
       |  Cut_Off_Date__c
       |FROM Payment_Failure__c
-      |WHERE PF_Comms_Status__c
+      |WHERE Status_Helper__c
+      |IN (
+      |  'payment outstanding',
+      |  'recovered',
+      |  'cancelled-customer',
+      |  'cancelled-auto'
+      |)
+      |AND PF_Comms_Status__c
       |IN (
       |  'Ready to send entry event',
       |  'Ready to send recovery event',
