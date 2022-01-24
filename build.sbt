@@ -23,7 +23,7 @@ lazy val root = (project in file("."))
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.9.3",
-        "org.scalatest" %% "scalatest" % "3.2.10" % Test
+        "org.scalatest" %% "scalatest" % "3.2.11" % Test
       )
   )
   .enablePlugins(RiffRaffArtifact)
