@@ -1,5 +1,6 @@
 package payment_failure_comms.services
 
+/*
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -134,3 +135,4 @@ object SalesforceClient extends ZIOAppDefault {
     } yield ()
   }
 }
+ */

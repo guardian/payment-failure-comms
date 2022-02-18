@@ -1,5 +1,6 @@
 package payment_failure_comms.services
 
+/*
 import payment_failure_comms.models.{Config, Failure}
 import zio.{Has, IO, Layer, UIO, URIO, ZIO, ZIOAppArgs, ZIOAppDefault}
 
@@ -42,3 +43,4 @@ object Client extends ZIOAppDefault {
     _ <- zio.Console.printLine(config.braze.toString)
   } yield ()).injectCustom(ConfigurationLive.layer)
 }
+ */
