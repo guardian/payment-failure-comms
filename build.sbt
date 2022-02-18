@@ -42,6 +42,7 @@ lazy val root = (project in file("."))
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.9.3",
+        "dev.zio" %% "zio" % "2.0.0-RC2",
         "org.scalatest" %% "scalatest" % "3.2.12" % Test,
         "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
