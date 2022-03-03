@@ -22,7 +22,7 @@ jobs:
     steps:
     
       - name: Dump GitHub context
-        run: echo '${{ toJSON(github) }}'
+        run: echo ${{ toJSON(github) }}
         
       - name: Checkout repo
         uses: actions/checkout@v2
