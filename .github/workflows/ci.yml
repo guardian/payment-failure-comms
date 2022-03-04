@@ -10,7 +10,10 @@ on:
 jobs:
   CI:
 
-    if: github.actor != 'scala-steward'
+    if: >
+      github.event_name = 'push' || 
+      github.event_name = 'workflow_dispatch' || 
+      (github.event_name = 'pull_request' && github.event.pull_request.head.repo.owner.login = 'guardian')
 
     runs-on: ubuntu-latest
 
