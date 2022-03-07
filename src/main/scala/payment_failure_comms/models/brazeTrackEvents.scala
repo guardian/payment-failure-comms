@@ -27,21 +27,21 @@ case class BillToCountryAttr(external_id: String, bill_to_country: String) exten
 
 object EncodeCustomAttribute {
   implicit val encode: Encoder[CustomAttribute] = Encoder.instance {
-    case c1 @ ResponseCodeAttr(_, _) => c1.asJson
-    case c2 @ ResponseMessageAttr(_, _) => c2.asJson
-    case c3 @ LastAttemptDateAttr(_, _) => c3.asJson
-    case c4 @ SubscriptionIdAttr(_, _) => c4.asJson
-    case c5 @ ProductNameAttr(_, _) => c5.asJson
+    case c1 @ ResponseCodeAttr(_, _)       => c1.asJson
+    case c2 @ ResponseMessageAttr(_, _)    => c2.asJson
+    case c3 @ LastAttemptDateAttr(_, _)    => c3.asJson
+    case c4 @ SubscriptionIdAttr(_, _)     => c4.asJson
+    case c5 @ ProductNameAttr(_, _)        => c5.asJson
     case c6 @ InvoiceCreatedDateAttr(_, _) => c6.asJson
-    case c7 @ BillToCountryAttr(_, _) => c7.asJson
+    case c7 @ BillToCountryAttr(_, _)      => c7.asJson
   }
 }
 
 case class EventProperties(
-                            product: String,
-                            currency: String,
-                            amount: Double,
-                          )
+    product: String,
+    currency: String,
+    amount: Double
+)
 
 object BrazeTrackRequest {
 
@@ -58,7 +58,9 @@ object BrazeTrackRequest {
       existingUserEvents: Option[Seq[UserCustomEvent]]
   )(record: CustomEventWithAttributes) =
     existingUserEvents.exists(
-      _.exists(existingEvent => existingEvent.name == record.event.name && !existingEvent.last.isBefore(timeOf(record.event)))
+      _.exists(existingEvent =>
+        existingEvent.name == record.event.name && !existingEvent.last.isBefore(timeOf(record.event))
+      )
     )
 
   private def isAlreadyInBraze(eventsAlreadyWritten: BrazeUserResponse)(record: CustomEventWithAttributes) =
@@ -67,7 +69,10 @@ object BrazeTrackRequest {
       hasEventWithSameNameAndAtSameTimeOrLater(user.custom_events)(record)
     }
 
-  private[models] def diff(events: Seq[CustomEventWithAttributes], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEventWithAttributes] =
+  private[models] def diff(
+      events: Seq[CustomEventWithAttributes],
+      eventsAlreadyWritten: BrazeUserResponse
+  ): Seq[CustomEventWithAttributes] =
     events.filterNot(isAlreadyInBraze(eventsAlreadyWritten))
 
   def apply(
@@ -91,7 +96,10 @@ object BrazeTrackRequest {
     process(Nil, records).map { records =>
       val newRecords = diff(records, eventsAlreadyWritten)
 
-      BrazeTrackRequest(attributes = newRecords.flatMap(rec => rec.attributes), events = newRecords.map(rec => rec.event))
+      BrazeTrackRequest(
+        attributes = newRecords.flatMap(rec => rec.attributes),
+        events = newRecords.map(rec => rec.event)
+      )
     }
   }
 
@@ -120,16 +128,16 @@ object BrazeTrackRequest {
           BillToCountryAttr(record.brazeId, record.record.Billing_Account__r.Zuora__BillToCountry__c)
         ),
         CustomEvent(
-        external_id = record.brazeId,
-        app_id = zuoraAppId,
-        name = eventName,
-        time = eventTime,
-        properties = EventProperties(
-          product = SF_Subscription__r.Product_Name__c,
-          currency = record.record.Currency__c,
-          amount = record.record.Invoice_Total_Amount__c
+          external_id = record.brazeId,
+          app_id = zuoraAppId,
+          name = eventName,
+          time = eventTime,
+          properties = EventProperties(
+            product = SF_Subscription__r.Product_Name__c,
+            currency = record.record.Currency__c,
+            amount = record.record.Invoice_Total_Amount__c
+          )
         )
-      )
       )
     }
 }

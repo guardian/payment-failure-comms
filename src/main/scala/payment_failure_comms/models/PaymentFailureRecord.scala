@@ -32,8 +32,8 @@ case class SFSubscription(
 )
 
 case class Billing(
-                    Zuora__BillToCountry__c: String,
-                    Zuora__BillToPostalCode__c: String
-                  )
+    Zuora__BillToCountry__c: String,
+    Zuora__BillToPostalCode__c: String
+)
 
 case class SFPaymentFailureRecordWrapper(totalSize: Int, done: Boolean, records: Seq[PaymentFailureRecord])
