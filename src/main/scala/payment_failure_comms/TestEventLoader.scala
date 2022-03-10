@@ -87,8 +87,8 @@ object TestEventLoader extends App {
     )
 
   private def genScenario(config: BrazeConfig, events: Seq[CustomEventWithAttributes]) = {
-    val attributes = events.flatMap(event => event.attributes)
-    val customEvents = events.map(event => event.event)
+    val attributes = events.flatMap(_.attributes)
+    val customEvents = events.map(_.event)
 
     BrazeConnector.sendCustomEvents(config, NoOpLogger())(payload = BrazeTrackRequest(attributes, customEvents))
   }

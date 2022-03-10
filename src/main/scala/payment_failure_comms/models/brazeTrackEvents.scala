@@ -17,6 +17,7 @@ sealed trait CustomAttribute {
   def external_id: String
 }
 
+case class PaymentFailureTypeAttr(external_id: String, payment_failure_type: String) extends CustomAttribute
 case class ResponseCodeAttr(external_id: String, gateway_response_code: String) extends CustomAttribute
 case class ResponseMessageAttr(external_id: String, gateway_response_message: String) extends CustomAttribute
 case class LastAttemptDateAttr(external_id: String, last_attempt_date: Option[LocalDate]) extends CustomAttribute
@@ -27,13 +28,14 @@ case class BillToCountryAttr(external_id: String, bill_to_country: String) exten
 
 object EncodeCustomAttribute {
   implicit val encode: Encoder[CustomAttribute] = Encoder.instance {
-    case c1 @ ResponseCodeAttr(_, _)       => c1.asJson
-    case c2 @ ResponseMessageAttr(_, _)    => c2.asJson
-    case c3 @ LastAttemptDateAttr(_, _)    => c3.asJson
-    case c4 @ SubscriptionIdAttr(_, _)     => c4.asJson
-    case c5 @ ProductNameAttr(_, _)        => c5.asJson
-    case c6 @ InvoiceCreatedDateAttr(_, _) => c6.asJson
-    case c7 @ BillToCountryAttr(_, _)      => c7.asJson
+    case attr @ PaymentFailureTypeAttr(_, _) => attr.asJson
+    case attr @ ResponseCodeAttr(_, _)       => attr.asJson
+    case attr @ ResponseMessageAttr(_, _)    => attr.asJson
+    case attr @ LastAttemptDateAttr(_, _)    => attr.asJson
+    case attr @ SubscriptionIdAttr(_, _)     => attr.asJson
+    case attr @ ProductNameAttr(_, _)        => attr.asJson
+    case attr @ InvoiceCreatedDateAttr(_, _) => attr.asJson
+    case attr @ BillToCountryAttr(_, _)      => attr.asJson
   }
 }
 
@@ -97,8 +99,8 @@ object BrazeTrackRequest {
       val newRecords = diff(records, eventsAlreadyWritten)
 
       BrazeTrackRequest(
-        attributes = newRecords.flatMap(rec => rec.attributes),
-        events = newRecords.map(rec => rec.event)
+        attributes = newRecords.flatMap(_.attributes),
+        events = newRecords.map(_.event)
       )
     }
   }
@@ -119,6 +121,7 @@ object BrazeTrackRequest {
 
       CustomEventWithAttributes(
         Seq(
+          PaymentFailureTypeAttr(record.brazeId, record.record.Payment_Failure_Type__c),
           ResponseCodeAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponseCode__c),
           ResponseMessageAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponse__c),
           LastAttemptDateAttr(record.brazeId, Last_Attempt_Date__c),

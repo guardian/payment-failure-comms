@@ -19,11 +19,10 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))
         ),
         Billing_Account__r = Billing(
-          Zuora__BillToCountry__c = "United Kingdom",
-          Zuora__BillToPostalCode__c = "NE14 5LS"
+          Zuora__BillToCountry__c = "United Kingdom"
         ),
-        Payment_Failure_Type__c = "Paypal",
-        Initial_Payment__r = SFPayment("402", "Card declined"),
+        Payment_Failure_Type__c = "Credit Card",
+        Initial_Payment__r = SFPayment("generic_decline", "Your card was declined."),
         PF_Comms_Status__c = status,
         PF_Comms_Last_Stage_Processed__c = None,
         PF_Comms_Number_of_Attempts__c = Some(0),
@@ -60,22 +59,25 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
     ) shouldBe Right(
       BrazeTrackRequest(
         attributes = Seq(
-          ResponseCodeAttr("b1", "402"),
-          ResponseMessageAttr("b1", "Card declined"),
+          PaymentFailureTypeAttr("b1", "Credit Card"),
+          ResponseCodeAttr("b1", "generic_decline"),
+          ResponseMessageAttr("b1", "Your card was declined."),
           LastAttemptDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
           SubscriptionIdAttr("b1", "A-S87234234"),
           ProductNameAttr("b1", "prod1"),
           InvoiceCreatedDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
           BillToCountryAttr("b1", "United Kingdom"),
-          ResponseCodeAttr("b2", "402"),
-          ResponseMessageAttr("b2", "Card declined"),
+          PaymentFailureTypeAttr("b2", "Credit Card"),
+          ResponseCodeAttr("b2", "generic_decline"),
+          ResponseMessageAttr("b2", "Your card was declined."),
           LastAttemptDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
           SubscriptionIdAttr("b2", "A-S87234234"),
           ProductNameAttr("b2", "prod1"),
           InvoiceCreatedDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
           BillToCountryAttr("b2", "United Kingdom"),
-          ResponseCodeAttr("b3", "402"),
-          ResponseMessageAttr("b3", "Card declined"),
+          PaymentFailureTypeAttr("b3", "Credit Card"),
+          ResponseCodeAttr("b3", "generic_decline"),
+          ResponseMessageAttr("b3", "Your card was declined."),
           LastAttemptDateAttr("b3", Some(LocalDate.of(2021, 10, 26))),
           SubscriptionIdAttr("b3", "A-S87234234"),
           ProductNameAttr("b3", "prod1"),
