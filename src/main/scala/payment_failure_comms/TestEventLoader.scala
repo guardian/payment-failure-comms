@@ -86,8 +86,12 @@ object TestEventLoader extends App {
       properties = EventProperties(product = productName, currency = "GBP", amount = 1)
     )
 
-  private def genScenario(config: BrazeConfig, events: Seq[CustomEvent]) =
-    BrazeConnector.sendCustomEvents(config, NoOpLogger())(payload = BrazeTrackRequest(events))
+  private def genScenario(config: BrazeConfig, events: Seq[CustomEventWithAttributes]) = {
+    val attributes = events.flatMap(_.attributes)
+    val customEvents = events.map(_.event)
+
+    BrazeConnector.sendCustomEvents(config, NoOpLogger())(payload = BrazeTrackRequest(attributes, customEvents))
+  }
 
   private def withConfig[A](block: BrazeConfig => Either[Failure, A]): Unit =
     maybeBrazeConfig.flatMap(block) match {
@@ -100,8 +104,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 5),
-          mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 5)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -111,8 +121,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 15),
-          mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 15)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -122,8 +138,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 28),
-          mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 28)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -133,8 +155,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 12),
-          mkCustomEvent(config, "Digital Pack", "pf_cancel_voluntary", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 12)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_cancel_voluntary", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -144,8 +172,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 28),
-          mkCustomEvent(config, "Digital Pack", "pf_cancel_auto", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 28)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_cancel_auto", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -155,8 +189,14 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 4),
-          mkCustomEvent(config, "Guardian Weekly", "pf_entry", daysBeforeNow = 3)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 4)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Guardian Weekly", "pf_entry", daysBeforeNow = 3)
+          )
         )
       )
     )
@@ -166,9 +206,18 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 90),
-          mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 80),
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 90)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 80)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 1)
+          )
         )
       )
     )
@@ -178,11 +227,26 @@ object TestEventLoader extends App {
       genScenario(
         config,
         events = Seq(
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 90),
-          mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 80),
-          mkCustomEvent(config, "Guardian Weekly", "pf_entry", daysBeforeNow = 60),
-          mkCustomEvent(config, "Guardian Weekly", "pf_recovery", daysBeforeNow = 55),
-          mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 1)
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 90)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 80)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Guardian Weekly", "pf_entry", daysBeforeNow = 60)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Guardian Weekly", "pf_recovery", daysBeforeNow = 55)
+          ),
+          CustomEventWithAttributes(
+            Seq(ResponseCodeAttr("b1", "402")),
+            mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 1)
+          )
         )
       )
     )
