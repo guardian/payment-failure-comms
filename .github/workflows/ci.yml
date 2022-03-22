@@ -7,7 +7,7 @@ on:
       - main
 
 env:
-  isPrFromForkedRepo: ${{ github.event.pull_request.head.repo.owner.login != 'guardian' }}
+  isPrFromForkedRepo: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.login != 'guardian' }}
 
 jobs:
   CI:
