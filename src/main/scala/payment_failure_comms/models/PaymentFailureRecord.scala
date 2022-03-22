@@ -26,7 +26,8 @@ case class SFPayment(Zuora__GatewayResponseCode__c: String, Zuora__GatewayRespon
 case class SFContact(IdentityID__c: Option[String], FirstName: String, LastName: String)
 
 case class SFSubscription(
-    Product_Name__c: String,
+    // Although this field should be required, there are records in Salesforce with a null value.
+    Product_Name__c: Option[String] = None,
     Zuora_Subscription_Name__c: String,
     Cancellation_Request_Date__c: Option[OffsetDateTime] = None
 )
