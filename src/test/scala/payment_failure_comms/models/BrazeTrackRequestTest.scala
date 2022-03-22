@@ -14,7 +14,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
         Contact__c = "c7",
         Contact__r = SFContact(IdentityID__c = Some("i1"), FirstName = "Jon", LastName = "Richards"),
         SF_Subscription__r = SFSubscription(
-          Product_Name__c = "prod1",
+          Product_Name__c = Some("prod1"),
           Zuora_Subscription_Name__c = "A-S87234234",
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))
         ),

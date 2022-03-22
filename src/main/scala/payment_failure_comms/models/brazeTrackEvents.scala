@@ -126,7 +126,7 @@ object BrazeTrackRequest {
           ResponseMessageAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponse__c),
           LastAttemptDateAttr(record.brazeId, Last_Attempt_Date__c),
           SubscriptionIdAttr(record.brazeId, SF_Subscription__r.Zuora_Subscription_Name__c),
-          ProductNameAttr(record.brazeId, SF_Subscription__r.Product_Name__c),
+          ProductNameAttr(record.brazeId, SF_Subscription__r.Product_Name__c.getOrElse("")),
           InvoiceCreatedDateAttr(record.brazeId, Invoice_Created_Date__c),
           BillToCountryAttr(record.brazeId, record.record.Billing_Account__r.Zuora__BillToCountry__c)
         ),
@@ -136,7 +136,7 @@ object BrazeTrackRequest {
           name = eventName,
           time = eventTime,
           properties = EventProperties(
-            product = SF_Subscription__r.Product_Name__c,
+            product = SF_Subscription__r.Product_Name__c.getOrElse(""),
             currency = record.record.Currency__c,
             amount = record.record.Invoice_Total_Amount__c
           )
