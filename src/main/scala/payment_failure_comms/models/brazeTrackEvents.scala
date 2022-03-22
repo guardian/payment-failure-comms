@@ -1,13 +1,49 @@
 package payment_failure_comms.models
+import scala.collection.mutable.Map
+import java.time.{LocalDate, OffsetDateTime, ZonedDateTime}
+import io.circe.Encoder
+import io.circe.generic.auto._
+import io.circe.syntax._
+import payment_failure_comms.models
 
-import java.time.ZonedDateTime
+case class BrazeTrackRequest(attributes: Seq[CustomAttribute], events: Seq[CustomEvent])
 
-case class BrazeTrackRequest(events: Seq[CustomEvent])
+case class CustomEventWithAttributes(attributes: Seq[CustomAttribute], event: CustomEvent)
 
 // Based on https://www.braze.com/docs/api/objects_filters/event_object/
 case class CustomEvent(external_id: String, app_id: String, name: String, time: String, properties: EventProperties)
 
-case class EventProperties(product: String, currency: String, amount: Double)
+sealed trait CustomAttribute {
+  def external_id: String
+}
+
+case class PaymentFailureTypeAttr(external_id: String, payment_failure_type: String) extends CustomAttribute
+case class ResponseCodeAttr(external_id: String, gateway_response_code: String) extends CustomAttribute
+case class ResponseMessageAttr(external_id: String, gateway_response_message: String) extends CustomAttribute
+case class LastAttemptDateAttr(external_id: String, last_attempt_date: Option[LocalDate]) extends CustomAttribute
+case class SubscriptionIdAttr(external_id: String, subscription_id: String) extends CustomAttribute
+case class ProductNameAttr(external_id: String, product_name: String) extends CustomAttribute
+case class InvoiceCreatedDateAttr(external_id: String, invoice_created_date: Option[LocalDate]) extends CustomAttribute
+case class BillToCountryAttr(external_id: String, bill_to_country: String) extends CustomAttribute
+
+object EncodeCustomAttribute {
+  implicit val encode: Encoder[CustomAttribute] = Encoder.instance {
+    case attr @ PaymentFailureTypeAttr(_, _) => attr.asJson
+    case attr @ ResponseCodeAttr(_, _)       => attr.asJson
+    case attr @ ResponseMessageAttr(_, _)    => attr.asJson
+    case attr @ LastAttemptDateAttr(_, _)    => attr.asJson
+    case attr @ SubscriptionIdAttr(_, _)     => attr.asJson
+    case attr @ ProductNameAttr(_, _)        => attr.asJson
+    case attr @ InvoiceCreatedDateAttr(_, _) => attr.asJson
+    case attr @ BillToCountryAttr(_, _)      => attr.asJson
+  }
+}
+
+case class EventProperties(
+    product: String,
+    currency: String,
+    amount: Double
+)
 
 object BrazeTrackRequest {
 
@@ -22,18 +58,23 @@ object BrazeTrackRequest {
 
   private def hasEventWithSameNameAndAtSameTimeOrLater(
       existingUserEvents: Option[Seq[UserCustomEvent]]
-  )(event: CustomEvent) =
+  )(record: CustomEventWithAttributes) =
     existingUserEvents.exists(
-      _.exists(existingEvent => existingEvent.name == event.name && !existingEvent.last.isBefore(timeOf(event)))
+      _.exists(existingEvent =>
+        existingEvent.name == record.event.name && !existingEvent.last.isBefore(timeOf(record.event))
+      )
     )
 
-  private def isAlreadyInBraze(eventsAlreadyWritten: BrazeUserResponse)(event: CustomEvent) =
+  private def isAlreadyInBraze(eventsAlreadyWritten: BrazeUserResponse)(record: CustomEventWithAttributes) =
     eventsAlreadyWritten.users.exists { user =>
-      user.external_id == event.external_id &&
-      hasEventWithSameNameAndAtSameTimeOrLater(user.custom_events)(event)
+      user.external_id == record.event.external_id &&
+      hasEventWithSameNameAndAtSameTimeOrLater(user.custom_events)(record)
     }
 
-  private[models] def diff(events: Seq[CustomEvent], eventsAlreadyWritten: BrazeUserResponse): Seq[CustomEvent] =
+  private[models] def diff(
+      events: Seq[CustomEventWithAttributes],
+      eventsAlreadyWritten: BrazeUserResponse
+  ): Seq[CustomEventWithAttributes] =
     events.filterNot(isAlreadyInBraze(eventsAlreadyWritten))
 
   def apply(
@@ -42,27 +83,31 @@ object BrazeTrackRequest {
       eventsAlreadyWritten: BrazeUserResponse
   ): Either[Failure, BrazeTrackRequest] = {
 
-    val customEvent = toCustomEvent(zuoraAppId) _
+    val processRecordFunc = processRecord(zuoraAppId) _
 
     def process(
-        soFar: Seq[CustomEvent],
+        soFar: Seq[CustomEventWithAttributes],
         toGo: Seq[PaymentFailureRecordWithBrazeId]
-    ): Either[Failure, Seq[CustomEvent]] =
+    ): Either[Failure, Seq[CustomEventWithAttributes]] =
       toGo match {
         case currRecord :: restOfRecords =>
-          customEvent(currRecord).flatMap(event => process(soFar :+ event, restOfRecords))
+          processRecordFunc(currRecord).flatMap(event => process(soFar :+ event, restOfRecords))
         case _ => Right(soFar)
       }
 
-    process(Nil, records).map { events =>
-      val newEvents = diff(events, eventsAlreadyWritten)
-      BrazeTrackRequest(newEvents)
+    process(Nil, records).map { records =>
+      val newRecords = diff(records, eventsAlreadyWritten)
+
+      BrazeTrackRequest(
+        attributes = newRecords.flatMap(_.attributes),
+        events = newRecords.map(_.event)
+      )
     }
   }
 
-  private def toCustomEvent(
+  private def processRecord(
       zuoraAppId: String
-  )(record: PaymentFailureRecordWithBrazeId): Either[Failure, CustomEvent] =
+  )(record: PaymentFailureRecordWithBrazeId): Either[Failure, CustomEventWithAttributes] =
     for {
       eventName <- eventNameMapping
         .get(record.record.PF_Comms_Status__c).toRight(
@@ -71,15 +116,31 @@ object BrazeTrackRequest {
           )
         )
       eventTime <- EventTime(record.record)
-    } yield CustomEvent(
-      external_id = record.brazeId,
-      app_id = zuoraAppId,
-      name = eventName,
-      time = eventTime,
-      properties = EventProperties(
-        product = record.record.SF_Subscription__r.Product_Name__c,
-        currency = record.record.Currency__c,
-        amount = record.record.Invoice_Total_Amount__c
+    } yield {
+      import record.record.{Initial_Payment__r, SF_Subscription__r, Last_Attempt_Date__c, Invoice_Created_Date__c}
+
+      CustomEventWithAttributes(
+        Seq(
+          PaymentFailureTypeAttr(record.brazeId, record.record.Payment_Failure_Type__c),
+          ResponseCodeAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponseCode__c),
+          ResponseMessageAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponse__c),
+          LastAttemptDateAttr(record.brazeId, Last_Attempt_Date__c),
+          SubscriptionIdAttr(record.brazeId, SF_Subscription__r.Zuora_Subscription_Name__c),
+          ProductNameAttr(record.brazeId, SF_Subscription__r.Product_Name__c),
+          InvoiceCreatedDateAttr(record.brazeId, Invoice_Created_Date__c),
+          BillToCountryAttr(record.brazeId, record.record.Billing_Account__r.Zuora__BillToCountry__c)
+        ),
+        CustomEvent(
+          external_id = record.brazeId,
+          app_id = zuoraAppId,
+          name = eventName,
+          time = eventTime,
+          properties = EventProperties(
+            product = SF_Subscription__r.Product_Name__c,
+            currency = record.record.Currency__c,
+            amount = record.record.Invoice_Total_Amount__c
+          )
+        )
       )
-    )
+    }
 }

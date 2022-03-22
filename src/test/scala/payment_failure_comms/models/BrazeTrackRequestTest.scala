@@ -12,17 +12,24 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       record = PaymentFailureRecord(
         Id = id.toString,
         Contact__c = "c7",
-        Contact__r = SFContact(IdentityID__c = Some("i1")),
+        Contact__r = SFContact(IdentityID__c = Some("i1"), FirstName = "Jon", LastName = "Richards"),
         SF_Subscription__r = SFSubscription(
           Product_Name__c = "prod1",
+          Zuora_Subscription_Name__c = "A-S87234234",
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))
         ),
+        Billing_Account__r = Billing(
+          Zuora__BillToCountry__c = "United Kingdom"
+        ),
+        Payment_Failure_Type__c = "Credit Card",
+        Initial_Payment__r = SFPayment("generic_decline", "Your card was declined."),
         PF_Comms_Status__c = status,
         PF_Comms_Last_Stage_Processed__c = None,
         PF_Comms_Number_of_Attempts__c = Some(0),
         Currency__c = "GBP",
         Invoice_Total_Amount__c = 1.2,
         Initial_Payment_Created_Date__c = None,
+        Invoice_Created_Date__c = Some(LocalDate.of(2021, 10, 26)),
         Last_Attempt_Date__c = Some(LocalDate.of(2021, 10, 26)),
         Cut_Off_Date__c = LocalDate.of(2021, 10, 27)
       ),
@@ -35,8 +42,10 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       records = Nil,
       zuoraAppId = "z1",
       eventsAlreadyWritten = BrazeUserResponse(Nil)
-    ) shouldBe Right(BrazeTrackRequest(Nil))
+    ) shouldBe Right(BrazeTrackRequest(Nil, Nil))
   }
+
+  val eventProperties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
 
   it should "succeed if all records are valid" in {
     BrazeTrackRequest(
@@ -49,27 +58,53 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       eventsAlreadyWritten = BrazeUserResponse(Nil)
     ) shouldBe Right(
       BrazeTrackRequest(
-        Seq(
+        attributes = Seq(
+          PaymentFailureTypeAttr("b1", "Credit Card"),
+          ResponseCodeAttr("b1", "generic_decline"),
+          ResponseMessageAttr("b1", "Your card was declined."),
+          LastAttemptDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
+          SubscriptionIdAttr("b1", "A-S87234234"),
+          ProductNameAttr("b1", "prod1"),
+          InvoiceCreatedDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
+          BillToCountryAttr("b1", "United Kingdom"),
+          PaymentFailureTypeAttr("b2", "Credit Card"),
+          ResponseCodeAttr("b2", "generic_decline"),
+          ResponseMessageAttr("b2", "Your card was declined."),
+          LastAttemptDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
+          SubscriptionIdAttr("b2", "A-S87234234"),
+          ProductNameAttr("b2", "prod1"),
+          InvoiceCreatedDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
+          BillToCountryAttr("b2", "United Kingdom"),
+          PaymentFailureTypeAttr("b3", "Credit Card"),
+          ResponseCodeAttr("b3", "generic_decline"),
+          ResponseMessageAttr("b3", "Your card was declined."),
+          LastAttemptDateAttr("b3", Some(LocalDate.of(2021, 10, 26))),
+          SubscriptionIdAttr("b3", "A-S87234234"),
+          ProductNameAttr("b3", "prod1"),
+          InvoiceCreatedDateAttr("b3", Some(LocalDate.of(2021, 10, 26))),
+          BillToCountryAttr("b3", "United Kingdom")
+        ),
+        events = Seq(
           CustomEvent(
             external_id = "b1",
             app_id = "z1",
             name = "pf_recovery",
             time = "2021-10-26T00:00:00Z",
-            properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
+            properties = eventProperties
           ),
           CustomEvent(
             external_id = "b2",
             app_id = "z1",
             name = "pf_cancel_voluntary",
             time = "2021-10-25T10:15:01Z",
-            properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
+            properties = eventProperties
           ),
           CustomEvent(
             external_id = "b3",
             app_id = "z1",
             name = "pf_cancel_auto",
             time = "2021-10-27T00:00:00Z",
-            properties = EventProperties(product = "prod1", currency = "GBP", amount = 1.2)
+            properties = eventProperties
           )
         )
       )
@@ -96,12 +131,15 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
 
   it should "give complete list of events if none already written" in {
     val events = Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
     val eventsAlreadyWritten = BrazeUserResponse(users =
@@ -122,24 +160,30 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       )
     )
     BrazeTrackRequest.diff(events, eventsAlreadyWritten) shouldBe Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
   }
 
   it should "miss out events that match those already written" in {
     val events = Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
     val eventsAlreadyWritten = BrazeUserResponse(users =
@@ -164,12 +208,15 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
 
   it should "not miss out events where name doesn't match" in {
     val events = Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
     val eventsAlreadyWritten = BrazeUserResponse(users =
@@ -190,24 +237,30 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       )
     )
     BrazeTrackRequest.diff(events, eventsAlreadyWritten) shouldBe Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
   }
 
   it should "not miss out events where last time of same event was before the time of the event" in {
     val events = Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
     val eventsAlreadyWritten = BrazeUserResponse(users =
@@ -228,24 +281,30 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       )
     )
     BrazeTrackRequest.diff(events, eventsAlreadyWritten) shouldBe Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
   }
 
   it should "miss out events where last time of same event was after the time of the event" in {
     val events = Seq(
-      CustomEvent(
-        external_id = "ei1",
-        app_id = "z1",
-        name = "payment_failure",
-        time = "2021-10-26T11:15:27Z",
-        properties = EventProperties(product = "p1", currency = "GBP", amount = 1.2)
+      CustomEventWithAttributes(
+        Seq(SubscriptionIdAttr("b1", "A-S87234234")),
+        CustomEvent(
+          external_id = "ei1",
+          app_id = "z1",
+          name = "payment_failure",
+          time = "2021-10-26T11:15:27Z",
+          properties = eventProperties
+        )
       )
     )
     val eventsAlreadyWritten = BrazeUserResponse(users =
