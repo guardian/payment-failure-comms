@@ -215,7 +215,7 @@ object TestEventLoader extends App {
             mkCustomEvent(config, "Digital Pack", "pf_recovery", daysBeforeNow = 80)
           ),
           CustomEventWithAttributes(
-            Seq(ResponseCodeAttr("b1", Option("402"))),
+            Seq(ResponseCodeAttr("b1", Some("402"))),
             mkCustomEvent(config, "Digital Pack", "pf_entry", daysBeforeNow = 1)
           )
         )
