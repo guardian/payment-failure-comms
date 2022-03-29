@@ -17,14 +17,14 @@ sealed trait CustomAttribute {
   def external_id: String
 }
 
-case class PaymentFailureTypeAttr(external_id: String, payment_failure_type: String) extends CustomAttribute
-case class ResponseCodeAttr(external_id: String, gateway_response_code: String) extends CustomAttribute
-case class ResponseMessageAttr(external_id: String, gateway_response_message: String) extends CustomAttribute
+case class PaymentFailureTypeAttr(external_id: String, payment_failure_type: Option[String] = Some("")) extends CustomAttribute
+case class ResponseCodeAttr(external_id: String, gateway_response_code: Option[String] = Some("")) extends CustomAttribute
+case class ResponseMessageAttr(external_id: String, gateway_response_message: Option[String] = Some("")) extends CustomAttribute
 case class LastAttemptDateAttr(external_id: String, last_attempt_date: Option[LocalDate]) extends CustomAttribute
-case class SubscriptionIdAttr(external_id: String, subscription_id: String) extends CustomAttribute
+case class SubscriptionIdAttr(external_id: String, subscription_id: Option[String] = Some("")) extends CustomAttribute
 case class ProductNameAttr(external_id: String, product_name: String) extends CustomAttribute
 case class InvoiceCreatedDateAttr(external_id: String, invoice_created_date: Option[LocalDate]) extends CustomAttribute
-case class BillToCountryAttr(external_id: String, bill_to_country: String) extends CustomAttribute
+case class BillToCountryAttr(external_id: String, bill_to_country: Option[String] = Some("")) extends CustomAttribute
 
 object EncodeCustomAttribute {
   implicit val encode: Encoder[CustomAttribute] = Encoder.instance {
