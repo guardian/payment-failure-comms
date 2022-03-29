@@ -12,17 +12,17 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
       record = PaymentFailureRecord(
         Id = id.toString,
         Contact__c = "c7",
-        Contact__r = SFContact(IdentityID__c = Some("i1"), FirstName = "Jon", LastName = "Richards"),
+        Contact__r = SFContact(IdentityID__c = Some("i1")),
         SF_Subscription__r = SFSubscription(
           Product_Name__c = Some("prod1"),
-          Zuora_Subscription_Name__c = "A-S87234234",
+          Zuora_Subscription_Name__c = Some("A-S87234234"),
           Cancellation_Request_Date__c = Some(OffsetDateTime.of(2021, 10, 25, 11, 15, 1, 0, ZoneOffset.ofHours(1)))
         ),
         Billing_Account__r = Billing(
-          Zuora__BillToCountry__c = "United Kingdom"
+          Zuora__BillToCountry__c = Some("United Kingdom")
         ),
-        Payment_Failure_Type__c = "Credit Card",
-        Initial_Payment__r = SFPayment("generic_decline", "Your card was declined."),
+        Payment_Failure_Type__c = Some("Credit Card"),
+        Initial_Payment__r = SFPayment(Some("generic_decline"), Some("Your card was declined.")),
         PF_Comms_Status__c = status,
         PF_Comms_Last_Stage_Processed__c = None,
         PF_Comms_Number_of_Attempts__c = Some(0),
@@ -59,30 +59,30 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
     ) shouldBe Right(
       BrazeTrackRequest(
         attributes = Seq(
-          PaymentFailureTypeAttr("b1", "Credit Card"),
-          ResponseCodeAttr("b1", "generic_decline"),
-          ResponseMessageAttr("b1", "Your card was declined."),
+          PaymentFailureTypeAttr("b1", Some("Credit Card")),
+          ResponseCodeAttr("b1", Some("generic_decline")),
+          ResponseMessageAttr("b1", Some("Your card was declined.")),
           LastAttemptDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
-          SubscriptionIdAttr("b1", "A-S87234234"),
+          SubscriptionIdAttr("b1", Some("A-S87234234")),
           ProductNameAttr("b1", "prod1"),
           InvoiceCreatedDateAttr("b1", Some(LocalDate.of(2021, 10, 26))),
-          BillToCountryAttr("b1", "United Kingdom"),
-          PaymentFailureTypeAttr("b2", "Credit Card"),
-          ResponseCodeAttr("b2", "generic_decline"),
-          ResponseMessageAttr("b2", "Your card was declined."),
+          BillToCountryAttr("b1", Some("United Kingdom")),
+          PaymentFailureTypeAttr("b2", Some("Credit Card")),
+          ResponseCodeAttr("b2", Some("generic_decline")),
+          ResponseMessageAttr("b2", Some("Your card was declined.")),
           LastAttemptDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
-          SubscriptionIdAttr("b2", "A-S87234234"),
+          SubscriptionIdAttr("b2", Some("A-S87234234")),
           ProductNameAttr("b2", "prod1"),
           InvoiceCreatedDateAttr("b2", Some(LocalDate.of(2021, 10, 26))),
-          BillToCountryAttr("b2", "United Kingdom"),
-          PaymentFailureTypeAttr("b3", "Credit Card"),
-          ResponseCodeAttr("b3", "generic_decline"),
-          ResponseMessageAttr("b3", "Your card was declined."),
+          BillToCountryAttr("b2", Some("United Kingdom")),
+          PaymentFailureTypeAttr("b3", Some("Credit Card")),
+          ResponseCodeAttr("b3", Some("generic_decline")),
+          ResponseMessageAttr("b3", Some("Your card was declined.")),
           LastAttemptDateAttr("b3", Some(LocalDate.of(2021, 10, 26))),
-          SubscriptionIdAttr("b3", "A-S87234234"),
+          SubscriptionIdAttr("b3", Some("A-S87234234")),
           ProductNameAttr("b3", "prod1"),
           InvoiceCreatedDateAttr("b3", Some(LocalDate.of(2021, 10, 26))),
-          BillToCountryAttr("b3", "United Kingdom")
+          BillToCountryAttr("b3", Some("United Kingdom"))
         ),
         events = Seq(
           CustomEvent(
@@ -297,7 +297,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
   it should "miss out events where last time of same event was after the time of the event" in {
     val events = Seq(
       CustomEventWithAttributes(
-        Seq(SubscriptionIdAttr("b1", "A-S87234234")),
+        Seq(SubscriptionIdAttr("b1", Some("A-S87234234"))),
         CustomEvent(
           external_id = "ei1",
           app_id = "z1",
