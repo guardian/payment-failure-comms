@@ -87,6 +87,7 @@ object SalesforceConnector {
       |  'Ready to send voluntary cancel event',
       |  'Ready to send auto cancel event'
       |)
+      |ORDER BY Invoice_Created_Date__c
       |LIMIT 50""".stripMargin
 
     handleRequestResult[SFPaymentFailureRecordWrapper](logger)(
