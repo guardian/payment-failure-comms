@@ -12,6 +12,19 @@ object Handler {
       withoutBrazeId: Seq[PaymentFailureRecord]
   )
 
+  def processBrazeRequests(
+      brazeRequests: Seq[BrazeTrackRequest],
+      config: Config,
+      logger: LambdaLogger
+  ): Either[Failure, Unit] = {
+    (for {
+      request <- brazeRequests
+    } yield BrazeConnector.sendCustomEvents(config.braze, logger)(request))
+      .collectFirst { case Left(failure) =>
+        Left(failure)
+      }.getOrElse(Right(()))
+  }
+
   def program(logger: LambdaLogger): Unit = {
     (for {
       config <- Config()
@@ -22,8 +35,9 @@ object Handler {
 
       currentEventsRequest = BrazeUserRequest.fromPaymentFailureRecords(augmentedRecords.withBrazeId)
       currentEventsResponse <- BrazeConnector.fetchCustomEvents(config.braze, logger)(currentEventsRequest)
-      brazeRequest <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId, currentEventsResponse)
-      brazeResult = BrazeConnector.sendCustomEvents(config.braze, logger)(brazeRequest)
+      brazeRequests <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId, currentEventsResponse)
+
+      brazeResult = processBrazeRequests(brazeRequests, config, logger)
 
       updateRecordsRequest = PaymentFailureRecordUpdateRequest(
         augmentedRecords.withBrazeId,
