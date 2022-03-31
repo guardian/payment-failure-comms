@@ -17,6 +17,9 @@ sealed trait CustomAttribute {
   def external_id: String
 }
 
+/* NOTE: if adding additional custom attributes, consider the limit when sending the attributes to Braze.
+There is a current limit of 75 attributes per API call to Braze */
+// https://www.braze.com/docs/api/endpoints/user_data/post_user_track/#rate-limit
 case class PaymentFailureTypeAttr(external_id: String, payment_failure_type: Option[String] = Some(""))
     extends CustomAttribute
 case class ResponseCodeAttr(external_id: String, gateway_response_code: Option[String] = Some(""))
@@ -84,7 +87,7 @@ object BrazeTrackRequest {
       records: Seq[PaymentFailureRecordWithBrazeId],
       zuoraAppId: String,
       eventsAlreadyWritten: BrazeUserResponse
-  ): Either[Failure, BrazeTrackRequest] = {
+  ): Either[Failure, Seq[BrazeTrackRequest]] = {
 
     val processRecordFunc = processRecord(zuoraAppId) _
 
@@ -101,10 +104,9 @@ object BrazeTrackRequest {
     process(Nil, records).map { records =>
       val newRecords = diff(records, eventsAlreadyWritten)
 
-      BrazeTrackRequest(
-        attributes = newRecords.flatMap(_.attributes),
-        events = newRecords.map(_.event)
-      )
+      // Send events in groups of 9 to Braze so we do not hit the attribute limit of 75 per API call
+      // https://www.braze.com/docs/api/endpoints/user_data/post_user_track/#rate-limit
+      newRecords.grouped(9).map(group => BrazeTrackRequest(group.flatMap(_.attributes), group.map(_.event))).toSeq
     }
   }
 
