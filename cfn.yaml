@@ -20,7 +20,7 @@ Conditions:
 Mappings:
   StageMap:
     PROD:
-      Schedule: 'rate(20 minutes)'
+      Schedule: 'rate(1 minute)'
       SalesforceStage: PROD
       SalesforceUserName: pfCommsAPIUser
       SalesforceAppName: PfComms
