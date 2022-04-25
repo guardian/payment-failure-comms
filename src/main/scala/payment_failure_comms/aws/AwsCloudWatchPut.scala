@@ -1,6 +1,11 @@
 package payment_failure_comms.aws
 
-import software.amazon.awssdk.auth.credentials.{AwsCredentialsProviderChain, EnvironmentVariableCredentialsProvider, InstanceProfileCredentialsProvider, ProfileCredentialsProvider}
+import software.amazon.awssdk.auth.credentials.{
+  AwsCredentialsProviderChain,
+  EnvironmentVariableCredentialsProvider,
+  InstanceProfileCredentialsProvider,
+  ProfileCredentialsProvider
+}
 import software.amazon.awssdk.regions.Region.EU_WEST_1
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient
 import software.amazon.awssdk.services.cloudwatch.model.{Dimension, MetricDatum, PutMetricDataRequest, StandardUnit}
@@ -37,11 +42,11 @@ object AwsCloudWatch {
   case class MetricDimensionValue(value: String) extends AnyVal
 
   case class MetricRequest(
-                            namespace: MetricNamespace,
-                            name: MetricName,
-                            dimensions: Map[MetricDimensionName, MetricDimensionValue],
-                            value: Double = 1.0
-                          )
+      namespace: MetricNamespace,
+      name: MetricName,
+      dimensions: Map[MetricDimensionName, MetricDimensionValue],
+      value: Double = 1.0
+  )
 
   def metricPut(request: MetricRequest): Try[Unit] = {
 
@@ -55,11 +60,12 @@ object AwsCloudWatch {
   }
 
   private[aws] def buildMetricDatum(request: MetricRequest) = {
-    val dimensions = request.dimensions.map {
-      case (name, value) =>
+    val dimensions = request
+      .dimensions.map { case (name, value) =>
         Dimension.builder.name(name.value).value(value.value).build()
-    }.toList.asJava
-    MetricDatum.builder
+      }.toList.asJava
+    MetricDatum
+      .builder
       .metricName(request.name.value)
       .dimensions(dimensions)
       .value(request.value)

@@ -2,7 +2,13 @@ package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
 import payment_failure_comms.aws.AwsCloudWatch
-import payment_failure_comms.aws.AwsCloudWatch.{MetricDimensionName, MetricDimensionValue, MetricName, MetricNamespace, MetricRequest}
+import payment_failure_comms.aws.AwsCloudWatch.{
+  MetricDimensionName,
+  MetricDimensionValue,
+  MetricName,
+  MetricNamespace,
+  MetricRequest
+}
 import payment_failure_comms.models._
 
 object Handler {
@@ -10,14 +16,17 @@ object Handler {
   def handleRequest(context: Context): Unit = program(context.getLogger)
 
   def putMetric(stage: String, recordsOn5Failures: Int): Unit = {
-    AwsCloudWatch.metricPut(MetricRequest(
-      MetricNamespace("payment-failure-comms"),
-      MetricName("failure-limit-reached"),
-      Map(
-        MetricDimensionName("Stage") -> MetricDimensionValue(stage)
-      ),
-      value = recordsOn5Failures
-    )).get
+    AwsCloudWatch
+      .metricPut(
+        MetricRequest(
+          MetricNamespace("payment-failure-comms"),
+          MetricName("failure-limit-reached"),
+          Map(
+            MetricDimensionName("Stage") -> MetricDimensionValue(stage)
+          ),
+          value = recordsOn5Failures
+        )
+      ).get
   }
 
   private case class PartitionedRecords(
