@@ -6,6 +6,7 @@ ThisBuild / scalacOptions ++= Seq(
 )
 
 val circeVersion = "0.14.1"
+val awsSdkVersion = "2.17.176"
 
 lazy val root = (project in file("."))
   .settings(
@@ -23,7 +24,8 @@ lazy val root = (project in file("."))
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.9.3",
-        "org.scalatest" %% "scalatest" % "3.2.11" % Test
+        "org.scalatest" %% "scalatest" % "3.2.11" % Test,
+        "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
   )
   .enablePlugins(RiffRaffArtifact)
