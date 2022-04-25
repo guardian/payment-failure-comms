@@ -1,8 +1,7 @@
 package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
-import payment_failure_comms.aws.AwsCloudWatch
-import payment_failure_comms.aws.AwsCloudWatch.{
+import payment_failure_comms.AwsCloudWatch.{
   MetricDimensionName,
   MetricDimensionValue,
   MetricName,

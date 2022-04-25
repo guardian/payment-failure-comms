@@ -1,9 +1,8 @@
-package payment_failure_comms.aws
+package payment_failure_comms
 
 import software.amazon.awssdk.auth.credentials.{
   AwsCredentialsProviderChain,
   EnvironmentVariableCredentialsProvider,
-  InstanceProfileCredentialsProvider,
   ProfileCredentialsProvider
 }
 import software.amazon.awssdk.regions.Region.EU_WEST_1
@@ -59,7 +58,7 @@ object AwsCloudWatch {
     Try(client.putMetricData(putMetricDataRequest)).map(_ => ())
   }
 
-  private[aws] def buildMetricDatum(request: MetricRequest) = {
+  private def buildMetricDatum(request: MetricRequest) = {
     val dimensions = request
       .dimensions.map { case (name, value) =>
         Dimension.builder.name(name.value).value(value.value).build()
