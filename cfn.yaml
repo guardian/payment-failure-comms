@@ -129,3 +129,49 @@ Resources:
             - Effect: Allow
               Action: cloudwatch:PutMetricData
               Resource: "*"
+
+  FailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    DependsOn: PaymentFailureCommsLambda
+    Properties:
+      AlarmName: "Payment-failure-comms: General failure to send events to Braze"
+      AlarmDescription: >
+        IMPACT: If this goes unaddressed, at least one payment-failure event won't be communicated to the customer.
+        For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref PaymentFailureCommsLambda
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 3
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      TreatMissingData: ignore
+
+  FailureLimitReachedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    DependsOn: PaymentFailureCommsLambda
+    Properties:
+      AlarmName: "Action required - payment-failure-comms: failure limit reached for some records"
+      AlarmDescription: >
+        IMPACT: If this goes unaddressed, at least one payment-failure event won't be communicated to the customer.
+        For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
+      AlarmActions:
+        - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev
+      MetricName: failure-limit-reached
+      Namespace: payment-failure-comms
+      Dimensions:
+        - Name: Stage
+          Value: !Ref Stage
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Threshold: 1
+      Statistic: Sum
+      Period: 60
+      EvaluationPeriods: 1
+      TreatMissingData: ignore

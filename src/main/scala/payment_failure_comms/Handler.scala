@@ -43,7 +43,7 @@ object Handler {
     } yield BrazeConnector.sendCustomEvents(config.braze, logger)(request))
       .collectFirst { case Left(failure) =>
         Left(failure)
-      }.getOrElse(Left(ConfigFailure("")))
+      }.getOrElse(Right(()))
   }
 
   def program(logger: LambdaLogger): Unit = {
