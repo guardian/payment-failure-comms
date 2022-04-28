@@ -1,6 +1,6 @@
 package payment_failure_comms.models
 
-case class Config(salesforce: SalesforceConfig, idapi: IdapiConfig, braze: BrazeConfig)
+case class Config(stage: String, salesforce: SalesforceConfig, idapi: IdapiConfig, braze: BrazeConfig)
 
 case class SalesforceConfig(
     instanceUrl: String,
@@ -23,6 +23,7 @@ object Config {
 
   def apply(): Either[Failure, Config] = {
     for {
+      stage <- getFromEnv("stage")
       salesforceInstanceUrl <- getFromEnv("salesforceInstanceUrl")
       salesforceApiVersion <- getFromEnv("salesforceApiVersion")
       salesforceClientId <- getFromEnv("salesforceClientId")
@@ -36,6 +37,7 @@ object Config {
       idapiInstanceUrl <- getFromEnv("idapiInstanceUrl")
       idapiBearerToken <- getFromEnv("idapiBearerToken")
     } yield Config(
+      stage,
       SalesforceConfig(
         salesforceInstanceUrl,
         salesforceApiVersion,

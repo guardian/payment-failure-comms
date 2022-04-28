@@ -1,11 +1,32 @@
 package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.{Context, LambdaLogger}
+import payment_failure_comms.AwsCloudWatch.{
+  MetricDimensionName,
+  MetricDimensionValue,
+  MetricName,
+  MetricNamespace,
+  MetricRequest
+}
 import payment_failure_comms.models._
 
 object Handler {
 
   def handleRequest(context: Context): Unit = program(context.getLogger)
+
+  def putMetric(stage: String, recordsOn5Failures: Int): Unit = {
+    AwsCloudWatch
+      .metricPut(
+        MetricRequest(
+          MetricNamespace("payment-failure-comms"),
+          MetricName("failure-limit-reached"),
+          Map(
+            MetricDimensionName("Stage") -> MetricDimensionValue(stage)
+          ),
+          value = recordsOn5Failures
+        )
+      ).get
+  }
 
   private case class PartitionedRecords(
       withBrazeId: Seq[PaymentFailureRecordWithBrazeId],
@@ -44,6 +65,9 @@ object Handler {
         augmentedRecords.withoutBrazeId,
         brazeResult
       )
+      recordsOn5Failures = updateRecordsRequest.records.count(_.PF_Comms_Number_of_Attempts__c == 5)
+      _ = if (recordsOn5Failures != 0) putMetric(config.stage, recordsOn5Failures)
+
       _ <- sfConnector.updateRecords(updateRecordsRequest)
     } yield ()) match {
       case Left(failure) =>
