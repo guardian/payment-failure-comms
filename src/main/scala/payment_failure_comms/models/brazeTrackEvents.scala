@@ -1,10 +1,10 @@
 package payment_failure_comms.models
-import scala.collection.mutable.Map
-import java.time.{LocalDate, OffsetDateTime, ZonedDateTime}
+
 import io.circe.Encoder
 import io.circe.generic.auto._
 import io.circe.syntax._
-import payment_failure_comms.models
+
+import java.time.LocalDate
 
 case class BrazeTrackRequest(attributes: Seq[CustomAttribute], events: Seq[CustomEvent])
 
@@ -60,33 +60,9 @@ object BrazeTrackRequest {
     "Ready to send auto cancel event" -> "pf_cancel_auto"
   )
 
-  private def timeOf(event: CustomEvent) = ZonedDateTime.parse(event.time)
-
-  private def hasEventWithSameNameAndAtSameTimeOrLater(
-      existingUserEvents: Option[Seq[UserCustomEvent]]
-  )(record: CustomEventWithAttributes) =
-    existingUserEvents.exists(
-      _.exists(existingEvent =>
-        existingEvent.name == record.event.name && !existingEvent.last.isBefore(timeOf(record.event))
-      )
-    )
-
-  private def isAlreadyInBraze(eventsAlreadyWritten: BrazeUserResponse)(record: CustomEventWithAttributes) =
-    eventsAlreadyWritten.users.exists { user =>
-      user.external_id == record.event.external_id &&
-      hasEventWithSameNameAndAtSameTimeOrLater(user.custom_events)(record)
-    }
-
-  private[models] def diff(
-      events: Seq[CustomEventWithAttributes],
-      eventsAlreadyWritten: BrazeUserResponse
-  ): Seq[CustomEventWithAttributes] =
-    events.filterNot(isAlreadyInBraze(eventsAlreadyWritten))
-
   def apply(
       records: Seq[PaymentFailureRecordWithBrazeId],
-      zuoraAppId: String,
-      eventsAlreadyWritten: BrazeUserResponse
+      zuoraAppId: String
   ): Either[Failure, Seq[BrazeTrackRequest]] = {
 
     val processRecordFunc = processRecord(zuoraAppId) _
@@ -101,12 +77,11 @@ object BrazeTrackRequest {
         case _ => Right(soFar)
       }
 
-    process(Nil, records).map { records =>
-      val newRecords = diff(records, eventsAlreadyWritten)
-
+    process(Nil, records).map { eventsAndAttributes =>
       // Send events in groups of 9 to Braze so we do not hit the attribute limit of 75 per API call
       // https://www.braze.com/docs/api/endpoints/user_data/post_user_track/#rate-limit
-      newRecords.grouped(9).map(group => BrazeTrackRequest(group.flatMap(_.attributes), group.map(_.event))).toSeq
+      eventsAndAttributes
+        .grouped(9).map(group => BrazeTrackRequest(group.flatMap(_.attributes), group.map(_.event))).toSeq
     }
   }
 
@@ -122,7 +97,7 @@ object BrazeTrackRequest {
         )
       eventTime <- EventTime(record.record)
     } yield {
-      import record.record.{Initial_Payment__r, SF_Subscription__r, Last_Attempt_Date__c, Invoice_Created_Date__c}
+      import record.record.{Initial_Payment__r, Invoice_Created_Date__c, Last_Attempt_Date__c, SF_Subscription__r}
 
       CustomEventWithAttributes(
         Seq(

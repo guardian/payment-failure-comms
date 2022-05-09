@@ -54,9 +54,7 @@ object Handler {
       records <- sfConnector.getRecordsToProcess()
       augmentedRecords = augmentRecordsWithBrazeId(findBrazeId(config.idapi, logger))(records)
 
-      currentEventsRequest = BrazeUserRequest.fromPaymentFailureRecords(augmentedRecords.withBrazeId)
-      currentEventsResponse <- BrazeConnector.fetchCustomEvents(config.braze, logger)(currentEventsRequest)
-      brazeRequests <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId, currentEventsResponse)
+      brazeRequests <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
 
       brazeResult = processBrazeRequests(brazeRequests, config, logger)
 
