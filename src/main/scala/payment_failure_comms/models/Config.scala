@@ -21,7 +21,7 @@ object Config {
   def getFromEnv(prop: String): Either[ConfigFailure, String] =
     sys.env.get(prop).toRight(ConfigFailure(s"Could not obtain $prop"))
 
-  def apply(): Either[Failure, Config] = {
+  def apply(): Either[ConfigFailure, Config] = {
     for {
       stage <- getFromEnv("stage")
       salesforceInstanceUrl <- getFromEnv("salesforceInstanceUrl")
