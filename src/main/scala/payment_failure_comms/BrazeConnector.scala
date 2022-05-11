@@ -6,6 +6,9 @@ import io.circe.syntax._
 import okhttp3._
 import payment_failure_comms.models._
 
+// Required to encode BrazeTrackRequest
+import payment_failure_comms.models.EncodeCustomAttribute._
+
 import scala.util.Try
 
 object BrazeConnector {
