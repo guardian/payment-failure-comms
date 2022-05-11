@@ -2,10 +2,11 @@ package payment_failure_comms
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
 import io.circe.generic.auto._
-import io.circe.parser.decode
 import io.circe.syntax._
 import okhttp3._
 import payment_failure_comms.models._
+
+// Required to encode BrazeTrackRequest
 import payment_failure_comms.models.EncodeCustomAttribute._
 
 import scala.util.Try
@@ -30,32 +31,6 @@ object BrazeConnector {
       responseCode = response.code(),
       body = Some(body)
     )
-
-  def fetchCustomEvents(brazeConfig: BrazeConfig, logger: LambdaLogger)(
-      payload: BrazeUserRequest
-  ): Either[Failure, BrazeUserResponse] = {
-    if (payload.external_ids.isEmpty)
-      Right(BrazeUserResponse(Nil))
-    else
-      responseToPostRequest(logger)(
-        url = s"https://${brazeConfig.instanceUrl}/users/export/ids",
-        bearerToken = brazeConfig.bearerToken,
-        body = payload.asJson.toString
-      )
-        .left.map(ex => BrazeRequestFailure(s"Attempt to contact Braze failed with error: ${ex.toString}"))
-        .flatMap(response => {
-          val body = response.body().string()
-          logResponse(logger, response, body)
-          if (response.isSuccessful) {
-            decode[BrazeUserResponse](body)
-              .left.map(decodeError =>
-                BrazeResponseFailure(s"Failed to decode successful response:$decodeError. Body to decode $body")
-              )
-          } else {
-            Left(BrazeResponseFailure(s"The request to Braze was unsuccessful: ${response.code} - $body"))
-          }
-        })
-  }
 
   def sendCustomEvents(brazeConfig: BrazeConfig, logger: LambdaLogger)(
       payload: BrazeTrackRequest
