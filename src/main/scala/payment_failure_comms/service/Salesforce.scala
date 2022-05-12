@@ -33,19 +33,52 @@ object SalesforceLive {
 
   private val httpClient = HttpClient()
 
-  private val genAuth = {
+  private def call(request: Request) =
+    ZIO
+      .acquireRelease(
+        ZIO.attempt(httpClient.newCall(request).execute())
+      )(response => ZIO.succeed(response.close())).mapError(ex => SalesforceRequestFailure(ex.getMessage))
 
-    def logAuthRequest(authDetails: String, request: Request) =
-      Logging.logRequest(
-        service = Log.Service.Salesforce,
-        description = Some("Auth"),
-        url = request.url().toString,
-        method = request.method(),
-        body = Some(authDetails)
-      )
+  private def logAuthRequest(authDetails: String, request: Request) =
+    Logging.logRequest(
+      service = Log.Service.Salesforce,
+      description = Some("Auth"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(authDetails)
+    )
 
-    for {
+  private def logReadRequest(request: Request) =
+    Logging.logRequest(
+      service = Log.Service.Salesforce,
+      description = Some("Read outstanding payment failure records"),
+      url = request.url().toString,
+      method = request.method(),
+      query = Some(Query.fetchPaymentFailures)
+    )
+
+  private def logWriteRequest(request: Request, requestBody: String) =
+    Logging.logRequest(
+      service = Log.Service.Salesforce,
+      description = Some("Update payment failure records"),
+      url = request.url().toString,
+      method = request.method(),
+      body = Some(requestBody)
+    )
+
+  private def logResponse(response: Response, responseBody: String) =
+    Logging.logResponse(
+      service = Log.Service.Salesforce,
+      url = response.request().url().toString,
+      method = response.request().method(),
+      responseCode = response.code(),
+      body = Some(responseBody)
+    )
+
+  private val genAuth =
+    ZIO.scoped(for {
       logging <- ZIO.service[Logging]
+      loggingLayer = ZLayer.succeed(logging)
       config <- ZIO.service[Config]
       sfConfig = config.salesforce
       authDetails = Seq(
@@ -62,58 +95,21 @@ object SalesforceLive {
         .url(s"${sfConfig.instanceUrl}/services/oauth2/token")
         .post(requestBody)
         .build()
-      _ <- logAuthRequest(authDetails, request)
-      responseBody <- call(request)
+      _ <- logAuthRequest(authDetails, request).provide(loggingLayer)
+      response <- call(request)
+      responseBody = response.body.string
+      _ <- logResponse(response, responseBody)
       auth <- ZIO
         .fromEither(decode[SalesforceAuth](responseBody)).mapError(ex => SalesforceRequestFailure(ex.getMessage))
-    } yield auth
-  }
+    } yield auth)
 
   val layer: ZLayer[Logging with Config, SalesforceRequestFailure, Salesforce] = ZLayer.fromZIO(
     for {
       logging <- ZIO.service[Logging]
+      loggingLayer = ZLayer.succeed(logging)
       config <- ZIO.service[Config]
       auth <- genAuth
     } yield new Salesforce {
-
-      private def call(request: Request) =
-        ZIO
-          .scoped(
-            for {
-              response <- ZIO.acquireRelease(ZIO.attempt(httpClient.newCall(request).execute()))(response =>
-                ZIO.succeed(response.close())
-              )
-              responseBody <- ZIO.succeed(response.body.string)
-              _ <- logResponse(logging, response, responseBody)
-            } yield responseBody
-          ).mapError(ex => SalesforceRequestFailure(ex.getMessage))
-
-      private def logReadRequest(logging: Logging, request: Request) =
-        logging.logRequest(
-          service = Log.Service.Salesforce,
-          description = Some("Read outstanding payment failure records"),
-          url = request.url().toString,
-          method = request.method(),
-          query = Some(Query.fetchPaymentFailures)
-        )
-
-      private def logWriteRequest(logging: Logging, request: Request, body: String) =
-        logging.logRequest(
-          service = Log.Service.Salesforce,
-          description = Some("Update payment failure records"),
-          url = request.url().toString,
-          method = request.method(),
-          body = Some(body)
-        )
-
-      private def logResponse(logging: Logging, response: Response, body: String) =
-        logging.logResponse(
-          service = Log.Service.Salesforce,
-          url = response.request().url().toString,
-          method = response.request().method(),
-          responseCode = response.code(),
-          body = Some(body)
-        )
 
       val fetchPaymentFailureRecords: IO[SalesforceRequestFailure, Seq[PaymentFailureRecord]] = {
         val url = s"${auth.instance_url}/services/data/${config.salesforce.apiVersion}/query/"
@@ -127,29 +123,33 @@ object SalesforceLive {
           .url(urlWithParam)
           .get()
           .build()
-        for {
-          _ <- logReadRequest(logging, request)
-          responseBody <- call(request)
+        ZIO.scoped(for {
+          _ <- logReadRequest(request).provide(loggingLayer)
+          response <- call(request)
+          responseBody = response.body.string
+          _ <- logResponse(response, responseBody).provide(loggingLayer)
           wrapper <- ZIO
             .fromEither(decode[SFPaymentFailureRecordWrapper](responseBody)).mapError(ex =>
               SalesforceRequestFailure(ex.getMessage)
             )
-        } yield wrapper.records
+        } yield wrapper.records)
       }
 
       override def updatePaymentFailureRecords(
           request: PaymentFailureRecordUpdateRequest
       ): IO[SalesforceRequestFailure, Unit] = {
-        val b = request.asJson.toString
-        val requestBody = RequestBody.create(b, JSON)
-        val request2 = new Request.Builder()
+        val bodyText = request.asJson.toString
+        val requestBody = RequestBody.create(bodyText, JSON)
+        val httpRequest = new Request.Builder()
           .header("Authorization", s"Bearer ${auth.access_token}").url(
             s"${auth.instance_url}/services/data/$apiVersion/composite/sobjects"
           ).patch(requestBody).build()
-        for {
-          _ <- logWriteRequest(logging, request2, b)
-          _ <- call(request2)
-        } yield ()
+        ZIO.scoped(for {
+          _ <- logWriteRequest(httpRequest, bodyText).provide(loggingLayer)
+          response <- call(httpRequest)
+          responseBody = response.body().string()
+          _ = logResponse(response, responseBody).provide(loggingLayer)
+        } yield ())
       }.unless(request.records.isEmpty).unit
     }
   )
