@@ -174,4 +174,4 @@ Resources:
       Statistic: Sum
       Period: 60
       EvaluationPeriods: 1
-      TreatMissingData: ignore
+      TreatMissingData: notBreaching
