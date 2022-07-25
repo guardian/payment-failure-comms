@@ -129,6 +129,8 @@ Resources:
             - Effect: Allow
               Action: cloudwatch:PutMetricData
               Resource: "*"
+      EventInvokeConfig:
+        MaximumRetryAttempts: 0
 
   FailureAlarm:
     Type: AWS::CloudWatch::Alarm
