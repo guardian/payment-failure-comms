@@ -160,8 +160,9 @@ Resources:
             Period: 60
             Unit: Count
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 5
+      Threshold: 1
       EvaluationPeriods: 90
+      DatapointsToAlarm: 5
       TreatMissingData: ignore
 
   FailureLimitReachedAlarm:
