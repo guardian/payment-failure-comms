@@ -149,7 +149,7 @@ Resources:
         - Name: FunctionName
           Value: !Ref PaymentFailureCommsLambda
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 4
+      Threshold: 5
       Statistic: Sum
       Period: 5400
       EvaluationPeriods: 1
