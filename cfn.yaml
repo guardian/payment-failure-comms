@@ -143,16 +143,25 @@ Resources:
         For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
       AlarmActions:
         - !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:retention-dev
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Dimensions:
-        - Name: FunctionName
-          Value: !Ref PaymentFailureCommsLambda
+      Metrics:
+        - Id: errors
+          Expression: "FILL(m1,0)"
+          Label: ErrorsCount
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              MetricName: Errors
+              Namespace: AWS/Lambda
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Ref PaymentFailureCommsLambda
+            Stat: Sum
+            Period: 60
+            Unit: Count
       ComparisonOperator: GreaterThanOrEqualToThreshold
       Threshold: 5
-      Statistic: Sum
-      Period: 5400
-      EvaluationPeriods: 1
+      EvaluationPeriods: 90
       TreatMissingData: ignore
 
   FailureLimitReachedAlarm:
