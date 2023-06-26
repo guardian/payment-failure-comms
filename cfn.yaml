@@ -182,8 +182,8 @@ Resources:
         - Name: Stage
           Value: !Ref Stage
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      Threshold: 1
+      Threshold: 5
       Statistic: Sum
-      Period: 60
+      Period: 3600
       EvaluationPeriods: 1
       TreatMissingData: notBreaching

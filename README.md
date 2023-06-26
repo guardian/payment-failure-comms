@@ -21,9 +21,18 @@ There is a [paused build](https://teamcity.gutools.co.uk/buildConfiguration/mems
 
 ## Alarms
 
-An alarm is set off when the lambda fails.  
-To resolve the failure:
+If the alarm has title "Action required - payment-failure-comms: failure limit reached for some records", this means at least five payment-failure events within an hour were unable to send to Braze meaning the customer won't get emails about their failed payment. We retry each record five times which is represented by the `PF_Comms_Number_of_Attempts__c` property. The cause of a single failure is rarely a problem with the code, and is rather dependent on the individual account state. For example, many failures are due to the customer deleting their identity account. We have set the threshold of the `FailureLimitReachedAlarm` to five because if it's that high (or higher) it usually suggests a code problem rather than a record-specific issue.
 
-1. Look for errors in the Cloudwatch logs attached to the lambda.
+To debug the failures, go to Salesforce and open the Salesforce Inspector. Use the following query to get the failed records:
 
-This will be updated as we accumulate reasons for the alarm going off.
+```
+SELECT
+       Id,
+PF_Comms_Number_of_Attempts__c,
+Last_Attempt_Date__c,
+Number_of_Failures__c
+FROM
+           Payment_Failure__c where PF_Comms_Number_of_Attempts__c = 5 AND Last_Attempt_Date__c != null order by Last_Attempt_Date__c desc
+```
+
+From here, view the record's data in Salesforce to determine the cause of failure. 
