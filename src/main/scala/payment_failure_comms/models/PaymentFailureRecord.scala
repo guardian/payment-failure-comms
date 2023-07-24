@@ -10,7 +10,8 @@ case class PaymentFailureRecord(
     Billing_Account__r: Billing,
     PF_Comms_Status__c: String,
     Payment_Failure_Type__c: Option[String],
-    Initial_Payment__r: SFPayment,
+    STG_Initial_Gateway_Response_Code__c: Option[String],
+    STG_Initial_Gateway_Response__c: Option[String],
     PF_Comms_Last_Stage_Processed__c: Option[String] = None,
     PF_Comms_Number_of_Attempts__c: Option[Int] = Some(0),
     Currency__c: String,
@@ -20,8 +21,6 @@ case class PaymentFailureRecord(
     Last_Attempt_Date__c: Option[LocalDate],
     Cut_Off_Date__c: LocalDate
 )
-
-case class SFPayment(Zuora__GatewayResponseCode__c: Option[String], Zuora__GatewayResponse__c: Option[String])
 
 case class SFContact(IdentityID__c: Option[String])
 

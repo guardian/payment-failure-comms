@@ -22,7 +22,8 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
           Zuora__BillToCountry__c = Some("United Kingdom")
         ),
         Payment_Failure_Type__c = Some("Credit Card"),
-        Initial_Payment__r = SFPayment(Some("generic_decline"), Some("Your card was declined.")),
+        STG_Initial_Gateway_Response_Code__c = Some("generic_decline"),
+        STG_Initial_Gateway_Response__c = Some("Your card was declined."),
         PF_Comms_Status__c = status,
         PF_Comms_Last_Stage_Processed__c = None,
         PF_Comms_Number_of_Attempts__c = Some(0),
