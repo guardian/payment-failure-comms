@@ -97,13 +97,13 @@ object BrazeTrackRequest {
         )
       eventTime <- EventTime(record.record)
     } yield {
-      import record.record.{Initial_Payment__r, Invoice_Created_Date__c, Last_Attempt_Date__c, SF_Subscription__r}
+      import record.record.{Invoice_Created_Date__c, Last_Attempt_Date__c, SF_Subscription__r}
 
       CustomEventWithAttributes(
         Seq(
           PaymentFailureTypeAttr(record.brazeId, record.record.Payment_Failure_Type__c),
-          ResponseCodeAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponseCode__c),
-          ResponseMessageAttr(record.brazeId, Initial_Payment__r.Zuora__GatewayResponse__c),
+          ResponseCodeAttr(record.brazeId, record.record.STG_Initial_Gateway_Response_Code__c),
+          ResponseMessageAttr(record.brazeId, record.record.STG_Initial_Gateway_Response__c),
           LastAttemptDateAttr(record.brazeId, Last_Attempt_Date__c),
           SubscriptionIdAttr(record.brazeId, SF_Subscription__r.Zuora_Subscription_Name__c),
           ProductNameAttr(record.brazeId, SF_Subscription__r.Product_Name__c.getOrElse("")),
