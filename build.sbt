@@ -1,12 +1,12 @@
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "2.13.12"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-Xfatal-warnings"
 )
 
-val circeVersion = "0.14.1"
-val awsSdkVersion = "2.17.225"
+val circeVersion = "0.14.5"
+val awsSdkVersion = "2.21.11"
 
 // to resolve merge clash of 'module-info.class'
 // see https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
@@ -19,7 +19,8 @@ val assemblyMergeStrategyDiscardModuleInfo = assembly / assemblyMergeStrategy :=
    * This appears to be for generating clients from HTTP services.
    * So it's redundant in a binary artefact.
    */
-  case PathList("codegen-resources", _*) => MergeStrategy.discard
+  case PathList("codegen-resources", _*)          => MergeStrategy.discard
+  case PathList("META-INF", "okio.kotlin_module") => MergeStrategy.discard
   case x =>
     val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
@@ -38,11 +39,11 @@ lazy val root = (project in file("."))
     riffRaffArtifactResources += (file("cfn.yaml"), "cfn/cfn.yaml"),
     libraryDependencies ++=
       Seq(
-        "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
+        "com.amazonaws" % "aws-lambda-java-core" % "1.2.2",
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
-        "com.squareup.okhttp3" % "okhttp" % "4.9.3",
-        "org.scalatest" %% "scalatest" % "3.2.12" % Test,
+        "com.squareup.okhttp3" % "okhttp" % "4.12.0",
+        "org.scalatest" %% "scalatest" % "3.2.15" % Test,
         "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
   )
