@@ -20,6 +20,7 @@ val assemblyMergeStrategyDiscardModuleInfo = assembly / assemblyMergeStrategy :=
    * So it's redundant in a binary artefact.
    */
   case PathList("codegen-resources", _*) => MergeStrategy.discard
+  case PathList("META-INF", "okio.kotlin_module") => MergeStrategy.discard
   case x =>
     val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
