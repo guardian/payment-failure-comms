@@ -39,7 +39,7 @@ lazy val root = (project in file("."))
     riffRaffArtifactResources += (file("cfn.yaml"), "cfn/cfn.yaml"),
     libraryDependencies ++=
       Seq(
-        "com.amazonaws" % "aws-lambda-java-core" % "1.2.2",
+        "com.amazonaws" % "aws-lambda-java-core" % "1.2.3",
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.12.0",
