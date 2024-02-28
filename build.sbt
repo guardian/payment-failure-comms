@@ -6,7 +6,7 @@ ThisBuild / scalacOptions ++= Seq(
 )
 
 val circeVersion = "0.14.5"
-val awsSdkVersion = "2.21.11"
+val awsSdkVersion = "2.21.46"
 
 // to resolve merge clash of 'module-info.class'
 // see https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
