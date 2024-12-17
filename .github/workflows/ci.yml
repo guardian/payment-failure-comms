@@ -29,9 +29,11 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v2
         with:
-          java-version: 11
-          distribution: adopt
-
+          java-version: 21
+          distribution: corretto
+      - name: Install sbt
+        id: sbt
+        uses: sbt/setup-sbt@8a071aa780c993c7a204c785d04d3e8eb64ef272 # v1.1.0
       - name: Test PR from forked repo
         if: env.isPrFromForkedRepo == 'true'
         run: sbt test
