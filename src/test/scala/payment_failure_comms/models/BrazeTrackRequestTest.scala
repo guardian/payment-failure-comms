@@ -31,7 +31,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
         Invoice_Total_Amount__c = 1.2,
         Initial_Payment_Created_Date__c = None,
         Invoice_Created_Date__c = Some(LocalDate.of(2021, 10, 26)),
-        Recovery_Date__c = Some(LocalDate.of(2021, 10, 26)),
+        Recovery_Date__c = Some(OffsetDateTime.of(2021, 10, 26, 11, 15, 1, 0, ZoneOffset.ofHours(1))),
         Cut_Off_Date__c = LocalDate.of(2021, 10, 27)
       ),
       brazeId = s"b$id"

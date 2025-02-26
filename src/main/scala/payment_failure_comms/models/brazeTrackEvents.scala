@@ -26,7 +26,7 @@ case class ResponseCodeAttr(external_id: String, gateway_response_code: Option[S
     extends CustomAttribute
 case class ResponseMessageAttr(external_id: String, gateway_response_message: Option[String] = Some(""))
     extends CustomAttribute
-case class RecoveryDateAttr(external_id: String, recovery_date: Option[LocalDate]) extends CustomAttribute
+case class RecoveryDateAttr(external_id: String, recovery_date: Option[OffsetDateTime]) extends CustomAttribute
 case class SubscriptionIdAttr(external_id: String, subscription_id: Option[String] = Some("")) extends CustomAttribute
 case class ProductNameAttr(external_id: String, product_name: String) extends CustomAttribute
 case class InvoiceCreatedDateAttr(external_id: String, invoice_created_date: Option[LocalDate]) extends CustomAttribute
