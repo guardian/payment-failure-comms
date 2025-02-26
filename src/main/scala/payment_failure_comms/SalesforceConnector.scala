@@ -70,7 +70,7 @@ object SalesforceConnector {
       |  Billing_Account__r.Zuora__BillToCountry__c,
       |  Invoice_Created_Date__c,
       |  Initial_Payment_Created_Date__c,
-      |  Last_Attempt_Date__c,
+      |  Recovery_Date__c,
       |  Cut_Off_Date__c
       |FROM Payment_Failure__c
       |WHERE Status_Helper__c
