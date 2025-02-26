@@ -86,7 +86,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
               external_id = "b1",
               app_id = "z1",
               name = "pf_recovery",
-              time = "2021-10-26T00:00:00Z",
+              time = "2021-10-26T10:15:01Z",
               properties = eventProperties
             ),
             CustomEvent(
@@ -208,7 +208,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
               external_id = "b1",
               app_id = "z1",
               name = "pf_recovery",
-              time = "2021-10-26T00:00:00Z",
+              time = "2021-10-26T10:15:01Z",
               properties = eventProperties
             ),
             CustomEvent(
@@ -229,7 +229,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
               external_id = "b4",
               app_id = "z1",
               name = "pf_recovery",
-              time = "2021-10-26T00:00:00Z",
+              time = "2021-10-26T10:15:01Z",
               properties = eventProperties
             ),
             CustomEvent(
@@ -250,7 +250,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
               external_id = "b7",
               app_id = "z1",
               name = "pf_recovery",
-              time = "2021-10-26T00:00:00Z",
+              time = "2021-10-26T10:15:01Z",
               properties = eventProperties
             ),
             CustomEvent(
@@ -301,7 +301,7 @@ class BrazeTrackRequestTest extends AnyFlatSpec with should.Matchers {
               external_id = "b10",
               app_id = "z1",
               name = "pf_recovery",
-              time = "2021-10-26T00:00:00Z",
+              time = "2021-10-26T10:15:01Z",
               properties = eventProperties
             ),
             CustomEvent(
