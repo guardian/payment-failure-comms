@@ -18,7 +18,7 @@ case class PaymentFailureRecord(
     Invoice_Total_Amount__c: Double,
     Invoice_Created_Date__c: Option[LocalDate],
     Initial_Payment_Created_Date__c: Option[OffsetDateTime],
-    Recovery_Date__c: Option[LocalDate],
+    Recovery_Date__c: Option[OffsetDateTime],
     Cut_Off_Date__c: LocalDate
 )
 
