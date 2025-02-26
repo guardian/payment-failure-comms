@@ -29,10 +29,11 @@ To debug the failures, go to Salesforce and open the Salesforce Inspector. Use t
 SELECT
        Id,
 PF_Comms_Number_of_Attempts__c,
-Last_Attempt_Date__c,
+Invoice_Created_Date__c,
+Recovery_Date__c,
 Number_of_Failures__c
 FROM
-           Payment_Failure__c where PF_Comms_Number_of_Attempts__c = 5 AND Last_Attempt_Date__c != null order by Last_Attempt_Date__c desc
+           Payment_Failure__c where PF_Comms_Number_of_Attempts__c = 5 AND Last_Attempt_Date__c != null order by Invoice_Created_Date__c desc
 ```
 
 From here, view the record's data in Salesforce to determine the cause of failure. 
