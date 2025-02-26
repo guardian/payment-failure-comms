@@ -37,7 +37,7 @@ object EncodeCustomAttribute {
     case attr @ PaymentFailureTypeAttr(_, _) => attr.asJson
     case attr @ ResponseCodeAttr(_, _)       => attr.asJson
     case attr @ ResponseMessageAttr(_, _)    => attr.asJson
-    case attr @ RecoveryDateAttr(_, _)    => attr.asJson
+    case attr @ RecoveryDateAttr(_, _)       => attr.asJson
     case attr @ SubscriptionIdAttr(_, _)     => attr.asJson
     case attr @ ProductNameAttr(_, _)        => attr.asJson
     case attr @ InvoiceCreatedDateAttr(_, _) => attr.asJson
