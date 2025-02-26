@@ -4,7 +4,7 @@ import io.circe.Encoder
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-import java.time.LocalDate
+import java.time.{LocalDate, OffsetDateTime}
 
 case class BrazeTrackRequest(attributes: Seq[CustomAttribute], events: Seq[CustomEvent])
 
