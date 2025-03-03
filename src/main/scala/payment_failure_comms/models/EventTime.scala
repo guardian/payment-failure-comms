@@ -10,7 +10,7 @@ object EventTime {
     val failOrDate = eitherFailOrDate(record.Id) _
     record.PF_Comms_Status__c match {
       case "Ready to send entry event"    => failOrDate(record.Initial_Payment_Created_Date__c.map(formatDateTime))
-      case "Ready to send recovery event" => failOrDate(record.Last_Attempt_Date__c.map(formatDate))
+      case "Ready to send recovery event" => failOrDate(record.Recovery_Date__c.map(formatDateTime))
       case "Ready to send voluntary cancel event" =>
         failOrDate(record.SF_Subscription__r.Cancellation_Request_Date__c.map(formatDateTime))
       case "Ready to send auto cancel event" => Right(formatDate(record.Cut_Off_Date__c))

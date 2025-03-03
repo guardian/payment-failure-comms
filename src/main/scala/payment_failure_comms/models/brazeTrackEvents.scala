@@ -4,7 +4,7 @@ import io.circe.Encoder
 import io.circe.generic.auto._
 import io.circe.syntax._
 
-import java.time.LocalDate
+import java.time.{LocalDate, OffsetDateTime}
 
 case class BrazeTrackRequest(attributes: Seq[CustomAttribute], events: Seq[CustomEvent])
 
@@ -26,7 +26,7 @@ case class ResponseCodeAttr(external_id: String, gateway_response_code: Option[S
     extends CustomAttribute
 case class ResponseMessageAttr(external_id: String, gateway_response_message: Option[String] = Some(""))
     extends CustomAttribute
-case class LastAttemptDateAttr(external_id: String, last_attempt_date: Option[LocalDate]) extends CustomAttribute
+case class RecoveryDateAttr(external_id: String, recovery_date: Option[OffsetDateTime]) extends CustomAttribute
 case class SubscriptionIdAttr(external_id: String, subscription_id: Option[String] = Some("")) extends CustomAttribute
 case class ProductNameAttr(external_id: String, product_name: String) extends CustomAttribute
 case class InvoiceCreatedDateAttr(external_id: String, invoice_created_date: Option[LocalDate]) extends CustomAttribute
@@ -37,7 +37,7 @@ object EncodeCustomAttribute {
     case attr @ PaymentFailureTypeAttr(_, _) => attr.asJson
     case attr @ ResponseCodeAttr(_, _)       => attr.asJson
     case attr @ ResponseMessageAttr(_, _)    => attr.asJson
-    case attr @ LastAttemptDateAttr(_, _)    => attr.asJson
+    case attr @ RecoveryDateAttr(_, _)       => attr.asJson
     case attr @ SubscriptionIdAttr(_, _)     => attr.asJson
     case attr @ ProductNameAttr(_, _)        => attr.asJson
     case attr @ InvoiceCreatedDateAttr(_, _) => attr.asJson
@@ -97,14 +97,14 @@ object BrazeTrackRequest {
         )
       eventTime <- EventTime(record.record)
     } yield {
-      import record.record.{Invoice_Created_Date__c, Last_Attempt_Date__c, SF_Subscription__r}
+      import record.record.{Invoice_Created_Date__c, Recovery_Date__c, SF_Subscription__r}
 
       CustomEventWithAttributes(
         Seq(
           PaymentFailureTypeAttr(record.brazeId, record.record.Payment_Failure_Type__c),
           ResponseCodeAttr(record.brazeId, record.record.STG_Initial_Gateway_Response_Code__c),
           ResponseMessageAttr(record.brazeId, record.record.STG_Initial_Gateway_Response__c),
-          LastAttemptDateAttr(record.brazeId, Last_Attempt_Date__c),
+          RecoveryDateAttr(record.brazeId, Recovery_Date__c),
           SubscriptionIdAttr(record.brazeId, SF_Subscription__r.Zuora_Subscription_Name__c),
           ProductNameAttr(record.brazeId, SF_Subscription__r.Product_Name__c.getOrElse("")),
           InvoiceCreatedDateAttr(record.brazeId, Invoice_Created_Date__c),
