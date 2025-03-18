@@ -5,7 +5,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings"
 )
 
-val circeVersion = "0.14.6"
+val circeVersion = "0.14.12"
 val awsSdkVersion = "2.31.1"
 
 // to resolve merge clash of 'module-info.class'
