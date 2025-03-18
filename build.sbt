@@ -5,7 +5,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-Xfatal-warnings"
 )
 
-val circeVersion = "0.14.5"
+val circeVersion = "0.14.6"
 val awsSdkVersion = "2.21.46"
 
 // to resolve merge clash of 'module-info.class'
@@ -43,7 +43,7 @@ lazy val root = (project in file("."))
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.12.0",
-        "org.scalatest" %% "scalatest" % "3.2.15" % Test,
+        "org.scalatest" %% "scalatest" % "3.2.17" % Test,
         "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
   )
