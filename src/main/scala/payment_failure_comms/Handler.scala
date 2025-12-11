@@ -97,7 +97,7 @@ object Handler {
   ): PartitionedRecords =
     records.foldLeft(PartitionedRecords(Nil, Nil))((acc, record) =>
       findBrazeId(record) match {
-        case None => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
+        case None          => acc.copy(withoutBrazeId = acc.withoutBrazeId :+ record)
         case Some(brazeId) =>
           acc.copy(withBrazeId = acc.withBrazeId :+ PaymentFailureRecordWithBrazeId(record, brazeId))
       }
