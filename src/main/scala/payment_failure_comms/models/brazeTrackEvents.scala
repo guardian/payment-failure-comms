@@ -65,7 +65,7 @@ object BrazeTrackRequest {
       zuoraAppId: String
   ): Either[Failure, Seq[BrazeTrackRequest]] = {
 
-    val processRecordFunc = processRecord(zuoraAppId) _
+    val processRecordFunc = processRecord(zuoraAppId)
 
     def process(
         soFar: Seq[CustomEventWithAttributes],
