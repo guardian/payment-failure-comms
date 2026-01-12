@@ -15,7 +15,7 @@ case class PaymentFailureRecordUpdateRequest(records: Seq[PaymentFailureRecordUp
 
 object PaymentFailureRecordUpdate {
 
-  val eventStageMapping = Map(
+  val eventStageMapping: Map[String, String] = Map(
     "Ready to send entry event" -> "Entry",
     "Ready to send recovery event" -> "Exit",
     "Ready to send voluntary cancel event" -> "Exit",
