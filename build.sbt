@@ -42,7 +42,7 @@ lazy val root = (project in file("."))
         "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
-        "com.squareup.okhttp3" % "okhttp" % "4.12.0",
+        "com.squareup.okhttp3" % "okhttp" % "5.3.2",
         "org.scalatest" %% "scalatest" % "3.2.19" % Test,
         "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
