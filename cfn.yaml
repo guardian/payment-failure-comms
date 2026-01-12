@@ -61,7 +61,7 @@ Resources:
     Properties:
       FunctionName: !Sub ${AppName}-${Stage}
       Handler: payment_failure_comms.Handler::handleRequest
-      Runtime: java8.al2
+      Runtime: java21
       CodeUri:
         Bucket: membership-dist
         Key: !Sub membership/${Stage}/${AppName}/${AppName}.jar
