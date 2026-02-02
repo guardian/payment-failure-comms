@@ -21,7 +21,7 @@ val assemblyMergeStrategyDiscardModuleInfo = assembly / assemblyMergeStrategy :=
    */
   case PathList("codegen-resources", _*)          => MergeStrategy.discard
   case PathList("META-INF", "okio.kotlin_module") => MergeStrategy.discard
-  case x =>
+  case x                                          =>
     val oldStrategy = (assembly / assemblyMergeStrategy).value
     oldStrategy(x)
 }

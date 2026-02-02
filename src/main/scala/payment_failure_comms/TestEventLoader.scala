@@ -15,28 +15,21 @@ import scala.util.chaining.scalaUtilChainingOps
   *
   *   1. External ID of the test Braze account
   *
-  * 2. Email address of the test Braze account
-  *
-  * 3. Number of scenario to generate, corresponding with below.
+  *   2. Email address of the test Braze account
+  *   3. Number of scenario to generate, corresponding with below.
   *
   * The scenarios to test are:
   *
   *   1. Customer recovers within 4 days
   *
-  * 2. Customer recovers between 4 days and 27 days
-  *
-  * 3. Customer recovers between 27 days and 28 days
-  *
-  * 4. Customer cancels voluntarily during PF
-  *
-  * 5. Customer is auto-cancelled
-  *
-  * 6. Customer in PF with two products concurrently
-  *
-  * 7. Customer in PF over two different periods where the first recovered and second is in progress
-  *
-  * 8. Customer in PF over two different periods with two different products where both products recovered in different
-  * past periods
+  *   2. Customer recovers between 4 days and 27 days
+  *   3. Customer recovers between 27 days and 28 days
+  *   4. Customer cancels voluntarily during PF
+  *   5. Customer is auto-cancelled
+  *   6. Customer in PF with two products concurrently
+  *   7. Customer in PF over two different periods where the first recovered and second is in progress
+  *   8. Customer in PF over two different periods with two different products where both products recovered in
+  *      different past periods
   */
 object TestEventLoader extends App {
 
