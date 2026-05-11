@@ -1,9 +1,8 @@
 package payment_failure_comms
 
 import okhttp3.{MediaType, OkHttpClient, Request, RequestBody}
-import payment_failure_comms.TestEventLoader.mkCustomEvent
+import payment_failure_comms.models.*
 import payment_failure_comms.models.Config.getFromEnv
-import payment_failure_comms.models._
 
 import java.time.LocalDateTime
 import scala.util.Try
@@ -38,13 +37,34 @@ import scala.util.chaining.scalaUtilChainingOps
   * 8. Customer in PF over two different periods with two different products where both products recovered in different
   * past periods
   */
-object TestEventLoader extends App {
-
-  private val externalId = args(0)
-  private val emailAddress = args(1)
-  private val scenario = args(2).toInt
+object TestEventLoader {
 
   private val http = new OkHttpClient()
+
+  @main def main(externalId: String, emailAddress: String, scenario: Int) = {
+
+    val testEventLoader = new TestEventLoader(externalId, emailAddress, scenario)
+    import testEventLoader.*
+
+    withConfig { config =>
+      deleteAccount(config)
+      createAccount(config)
+    }
+
+    scenario match {
+      case 1 => genScenario1()
+      case 2 => genScenario2()
+      case 3 => genScenario3()
+      case 4 => genScenario4()
+      case 5 => genScenario5()
+      case 6 => genScenario6()
+      case 7 => genScenario7()
+      case 8 => genScenario8()
+    }
+  }
+}
+
+class TestEventLoader(externalId: String, emailAddress: String, scenario: Int) {
 
   private val maybeBrazeConfig =
     for {
@@ -64,7 +84,7 @@ object TestEventLoader extends App {
         )
       )
       .build().pipe(request =>
-        Try(http.newCall(request).execute()).toEither.left.map(e => BrazeRequestFailure(e.getMessage))
+        Try(TestEventLoader.http.newCall(request).execute()).toEither.left.map(e => BrazeRequestFailure(e.getMessage))
       )
 
   private def deleteAccount(config: BrazeConfig) =
@@ -75,7 +95,9 @@ object TestEventLoader extends App {
         RequestBody.create(s"""{"external_ids":["$externalId"]}""", MediaType.get("application/json; charset=utf-8"))
       )
       .build()
-      .pipe(request => Try(http.newCall(request).execute()).toEither.left.map(e => BrazeRequestFailure(e.getMessage)))
+      .pipe(request =>
+        Try(TestEventLoader.http.newCall(request).execute()).toEither.left.map(e => BrazeRequestFailure(e.getMessage))
+      )
 
   private def mkCustomEvent(config: BrazeConfig, productName: String, eventName: String, daysBeforeNow: Int) =
     CustomEvent(
@@ -250,20 +272,4 @@ object TestEventLoader extends App {
         )
       )
     )
-
-  withConfig { config =>
-    deleteAccount(config)
-    createAccount(config)
-  }
-
-  scenario match {
-    case 1 => genScenario1()
-    case 2 => genScenario2()
-    case 3 => genScenario3()
-    case 4 => genScenario4()
-    case 5 => genScenario5()
-    case 6 => genScenario6()
-    case 7 => genScenario7()
-    case 8 => genScenario8()
-  }
 }
