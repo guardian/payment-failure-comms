@@ -3,7 +3,7 @@ ThisBuild / scalaVersion := "3.8.3"
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
   "-Werror",
-  "-no-indent",
+  "-no-indent"
 )
 
 val circeVersion = "0.14.15"
