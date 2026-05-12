@@ -221,7 +221,7 @@ Resources:
       Threshold: 100
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      TreatMissingData: alarm
+      TreatMissingData: breaching
 
   NoPfRecoveryAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -256,7 +256,7 @@ Resources:
       Threshold: 100
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      TreatMissingData: alarm
+      TreatMissingData: breaching
 
   NoPfCancelVoluntaryAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -291,7 +291,7 @@ Resources:
       Threshold: 100
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      TreatMissingData: alarm
+      TreatMissingData: breaching
 
   NoPfCancelAutoAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -326,4 +326,4 @@ Resources:
       Threshold: 100
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
-      TreatMissingData: alarm
+      TreatMissingData: breaching
