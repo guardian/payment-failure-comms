@@ -14,16 +14,21 @@ object Handler {
 
   def handleRequest(context: Context): Unit = program(context.getLogger)
 
-  def putMetric(stage: String, recordsOn5Failures: Int): Unit = {
+  def putMetric(
+      stage: String,
+      value: Int,
+      metricName: MetricName,
+      extraDimensions: Map[MetricDimensionName, MetricDimensionValue] = Map.empty
+  ): Unit = {
     AwsCloudWatch
       .metricPut(
         MetricRequest(
           MetricNamespace("payment-failure-comms"),
-          MetricName("failure-limit-reached"),
+          metricName,
           Map(
             MetricDimensionName("Stage") -> MetricDimensionValue(stage)
-          ),
-          value = recordsOn5Failures
+          ) ++ extraDimensions,
+          value = value
         )
       ).get
   }
@@ -56,6 +61,19 @@ object Handler {
 
       brazeRequests <- BrazeTrackRequest(augmentedRecords.withBrazeId, config.braze.zuoraAppId)
 
+      eventCounts = (for {
+        brazeTrackRequest <- brazeRequests
+        customEvent <- brazeTrackRequest.events
+      } yield customEvent).groupMapReduce(_.name)(_ => 1)(_ + _)
+      _ = eventCounts.foreach((eventName, count) =>
+        putMetric(
+          config.stage,
+          count,
+          MetricName("processed-event"),
+          Map(MetricDimensionName("event-name") -> MetricDimensionValue(eventName))
+        )
+      )
+
       brazeResult = processBrazeRequests(brazeRequests, config, logger)
 
       updateRecordsRequest = PaymentFailureRecordUpdateRequest(
@@ -64,7 +82,7 @@ object Handler {
         brazeResult
       )
       recordsOn5Failures = updateRecordsRequest.records.count(_.PF_Comms_Number_of_Attempts__c == 5)
-      _ = if (recordsOn5Failures != 0) putMetric(config.stage, recordsOn5Failures)
+      _ = if (recordsOn5Failures != 0) putMetric(config.stage, recordsOn5Failures, MetricName("failure-limit-reached"))
 
       _ <- sfConnector.updateRecords(updateRecordsRequest)
     } yield ()) match {

@@ -37,3 +37,7 @@ FROM
 ```
 
 From here, view the record's data in Salesforce to determine the cause of failure. 
+
+For other alarms, e.g. `payment-failure-comms no <something> events recently` follow a similar process, although
+look at whether there are no recent dates e.g. Invoice_Created_Date__c or Recovery_Date__c.  Also check that the
+lambda is actually running.
