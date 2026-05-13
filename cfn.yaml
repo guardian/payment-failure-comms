@@ -250,10 +250,10 @@ Resources:
                 - Name: event-name
                   Value: pf_recovery
             Stat: Sum
-            Period: 43200
+            Period: 21600
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
-      Threshold: 50
+      Threshold: 10
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       TreatMissingData: breaching
