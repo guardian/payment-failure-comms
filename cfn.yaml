@@ -215,10 +215,10 @@ Resources:
                 - Name: event-name
                   Value: pf_entry
             Stat: Sum
-            Period: 1800
+            Period: 86400
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
-      Threshold: 100
+      Threshold: 200
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       TreatMissingData: breaching
@@ -250,10 +250,10 @@ Resources:
                 - Name: event-name
                   Value: pf_recovery
             Stat: Sum
-            Period: 1800
+            Period: 43200
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
-      Threshold: 100
+      Threshold: 50
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       TreatMissingData: breaching
@@ -285,10 +285,10 @@ Resources:
                 - Name: event-name
                   Value: pf_cancel_voluntary
             Stat: Sum
-            Period: 1800
+            Period: 86400
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
-      Threshold: 100
+      Threshold: 10
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       TreatMissingData: breaching
@@ -320,7 +320,7 @@ Resources:
                 - Name: event-name
                   Value: pf_cancel_auto
             Stat: Sum
-            Period: 1800
+            Period: 86400
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
       Threshold: 100
