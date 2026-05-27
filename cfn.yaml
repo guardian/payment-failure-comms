@@ -193,7 +193,7 @@ Resources:
     Condition: IsProd
     DependsOn: PaymentFailureCommsLambda
     Properties:
-      AlarmName: "payment-failure-comms no pf_entry events recently"
+      AlarmName: "payment-failure-comms too few pf_entry events recently"
       AlarmDescription: >
         IMPACT: Until the job is repaired, certain payment-failure events will not be communicated to customers.
         For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
@@ -228,7 +228,7 @@ Resources:
     Condition: IsProd
     DependsOn: PaymentFailureCommsLambda
     Properties:
-      AlarmName: "payment-failure-comms no pf_recovery events recently"
+      AlarmName: "payment-failure-comms too few pf_recovery events recently"
       AlarmDescription: >
         IMPACT: Until the job is repaired, certain payment-failure events will not be communicated to customers.
         For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
@@ -288,7 +288,7 @@ Resources:
             Period: 86400
             Unit: Count
       ComparisonOperator: LessThanOrEqualToThreshold
-      Threshold: 10
+      Threshold: 1
       EvaluationPeriods: 1
       DatapointsToAlarm: 1
       TreatMissingData: breaching
@@ -298,7 +298,7 @@ Resources:
     Condition: IsProd
     DependsOn: PaymentFailureCommsLambda
     Properties:
-      AlarmName: "payment-failure-comms no pf_cancel_auto events recently"
+      AlarmName: "payment-failure-comms too few pf_cancel_auto events recently"
       AlarmDescription: >
         IMPACT: Until the job is repaired, certain payment-failure events will not be communicated to customers.
         For resolution steps, see https://github.com/guardian/payment-failure-comms/blob/main/README.md#alarms.
