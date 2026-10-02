@@ -1,12 +1,13 @@
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "3.8.3"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
-  "-Xfatal-warnings"
+  "-Werror",
+  "-no-indent"
 )
 
-val circeVersion = "0.14.12"
-val awsSdkVersion = "2.31.1"
+val circeVersion = "0.14.15"
+val awsSdkVersion = "2.44.5"
 
 // to resolve merge clash of 'module-info.class'
 // see https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
@@ -39,11 +40,11 @@ lazy val root = (project in file("."))
     riffRaffArtifactResources += (file("cfn.yaml"), "cfn/cfn.yaml"),
     libraryDependencies ++=
       Seq(
-        "com.amazonaws" % "aws-lambda-java-core" % "1.2.3",
+        "com.amazonaws" % "aws-lambda-java-core" % "1.4.0",
         "io.circe" %% "circe-generic" % circeVersion,
         "io.circe" %% "circe-parser" % circeVersion,
         "com.squareup.okhttp3" % "okhttp" % "4.12.0",
-        "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+        "org.scalatest" %% "scalatest" % "3.2.20" % Test,
         "software.amazon.awssdk" % "cloudwatch" % awsSdkVersion
       )
   )
