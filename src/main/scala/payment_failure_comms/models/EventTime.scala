@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 object EventTime {
 
   def apply(record: PaymentFailureRecord): Either[Failure, String] = {
-    val failOrDate = eitherFailOrDate(record.Id) _
+    val failOrDate = eitherFailOrDate(record.Id)
     record.PF_Comms_Status__c match {
       case "Ready to send entry event"    => failOrDate(record.Initial_Payment_Created_Date__c.map(formatDateTime))
       case "Ready to send recovery event" => failOrDate(record.Recovery_Date__c.map(formatDateTime))
