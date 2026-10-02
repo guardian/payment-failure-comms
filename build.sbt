@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "3.8.3"
+ThisBuild / scalaVersion := "3.8.4"
 
 ThisBuild / scalacOptions ++= Seq(
   "-deprecation",
@@ -7,7 +7,7 @@ ThisBuild / scalacOptions ++= Seq(
 )
 
 val circeVersion = "0.14.16"
-val awsSdkVersion = "2.44.4"
+val awsSdkVersion = "2.44.5"
 
 // to resolve merge clash of 'module-info.class'
 // see https://stackoverflow.com/questions/54834125/sbt-assembly-deduplicate-module-info-class
