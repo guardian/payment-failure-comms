@@ -13,14 +13,12 @@ import scala.util.chaining.scalaUtilChainingOps
   * It takes three program arguments:
   *
   *   1. External ID of the test Braze account
-  *
   *   2. Email address of the test Braze account
   *   3. Number of scenario to generate, corresponding with below.
   *
   * The scenarios to test are:
   *
   *   1. Customer recovers within 4 days
-  *
   *   2. Customer recovers between 4 days and 27 days
   *   3. Customer recovers between 27 days and 28 days
   *   4. Customer cancels voluntarily during PF
