@@ -6,7 +6,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-no-indent"
 )
 
-val circeVersion = "0.14.15"
+val circeVersion = "0.14.16"
 val awsSdkVersion = "2.55.10"
 
 // to resolve merge clash of 'module-info.class'
